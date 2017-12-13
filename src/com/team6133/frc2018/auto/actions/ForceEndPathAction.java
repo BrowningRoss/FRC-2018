@@ -11,8 +11,8 @@ import com.team6133.frc2018.subsystems.Drive;
  */
 public class ForceEndPathAction extends RunOnceAction {
 
-    @Override
-    public synchronized void runOnce() {
-        Drive.getInstance().forceDoneWithPath();
-    }
+	@Override
+	public synchronized void runOnce() {
+		Drive.getInstance().forceDoneWithPath();
+	}
 }

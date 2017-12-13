@@ -8,7 +8,8 @@ import com.team6133.frc2018.subsystems.Drive;
 import com.team6133.lib.util.math.RigidTransform2d;
 
 /**
- * Resets the robot's current pose based on the starting pose stored in the pathContainer object.
+ * Resets the robot's current pose based on the starting pose stored in the
+ * pathContainer object.
  * 
  * @see PathContainer
  * @see Action
@@ -16,16 +17,16 @@ import com.team6133.lib.util.math.RigidTransform2d;
  */
 public class ResetPoseFromPathAction extends RunOnceAction {
 
-    protected PathContainer mPathContainer;
+	protected PathContainer mPathContainer;
 
-    public ResetPoseFromPathAction(PathContainer pathContainer) {
-        mPathContainer = pathContainer;
-    }
+	public ResetPoseFromPathAction(PathContainer pathContainer) {
+		mPathContainer = pathContainer;
+	}
 
-    @Override
-    public synchronized void runOnce() {
-        RigidTransform2d startPose = mPathContainer.getStartPose();
-        RobotState.getInstance().reset(Timer.getFPGATimestamp(), startPose);
-        Drive.getInstance().setGyroAngle(startPose.getRotation());
-    }
+	@Override
+	public synchronized void runOnce() {
+		RigidTransform2d startPose = mPathContainer.getStartPose();
+		RobotState.getInstance().reset(Timer.getFPGATimestamp(), startPose);
+		Drive.getInstance().setGyroAngle(startPose.getRotation());
+	}
 }

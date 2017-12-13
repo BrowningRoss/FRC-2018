@@ -11,8 +11,8 @@ import com.team6133.frc2018.subsystems.MotorGearGrabber.WantedState;
  */
 public class ScoreGearAction extends RunOnceAction {
 
-    @Override
-    public void runOnce() {
-        MotorGearGrabber.getInstance().setWantedState(WantedState.SCORE);
-    }
+	@Override
+	public void runOnce() {
+		MotorGearGrabber.getInstance().setWantedState(WantedState.SCORE);
+	}
 }

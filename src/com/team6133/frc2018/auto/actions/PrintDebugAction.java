@@ -7,15 +7,15 @@ package com.team6133.frc2018.auto.actions;
  * @see RunOnceAction
  */
 public class PrintDebugAction extends RunOnceAction implements Action {
-    String debugMessage;
+	String debugMessage;
 
-    public PrintDebugAction(String s) {
-        debugMessage = s;
-    }
+	public PrintDebugAction(String s) {
+		debugMessage = s;
+	}
 
-    @Override
-    public void runOnce() {
-        System.out.println(debugMessage);
-    }
+	@Override
+	public void runOnce() {
+		System.out.println(debugMessage);
+	}
 
 }

@@ -19,15 +19,15 @@ import com.team6133.frc2018.paths.StartToCenterGearBlue;
  */
 public class CenterGear extends AutoModeBase {
 
-    @Override
-    protected void routine() throws AutoModeEndedException {
-        PathContainer gearPath = new StartToCenterGearBlue();
-        runAction(new ResetPoseFromPathAction(gearPath));
-        runAction(new DrivePathAction(gearPath));
-        //runAction(new DeployIntakeAction());
-        //runAction(new ScoreGearAction());
-        runAction(new DrivePathAction(new CenterGearToShootBlue()));
-        //runAction(new BeginShootingAction());
-        runAction(new WaitAction(15));
-    }
+	@Override
+	protected void routine() throws AutoModeEndedException {
+		PathContainer gearPath = new StartToCenterGearBlue();
+		runAction(new ResetPoseFromPathAction(gearPath));
+		runAction(new DrivePathAction(gearPath));
+		// runAction(new DeployIntakeAction());
+		// runAction(new ScoreGearAction());
+		// runAction(new DrivePathAction(new CenterGearToShootBlue()));
+		// runAction(new BeginShootingAction());
+		runAction(new WaitAction(15));
+	}
 }
