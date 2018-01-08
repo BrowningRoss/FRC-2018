@@ -1,5 +1,6 @@
 package com.team6133.frc2018.auto.actions;
 
+import com.team6133.frc2018.subsystems.Drive;
 import edu.wpi.first.wpilibj.Timer;
 
 /**
@@ -10,6 +11,7 @@ public class WaitAction implements Action {
 
 	private double mTimeToWait;
 	private double mStartTime;
+	private Drive mDrive = Drive.getInstance();
 
 	public WaitAction(double timeToWait) {
 		mTimeToWait = timeToWait;
@@ -32,6 +34,7 @@ public class WaitAction implements Action {
 
 	@Override
 	public void start() {
+		mDrive.forceDoneWithPath();
 		mStartTime = Timer.getFPGATimestamp();
 	}
 }

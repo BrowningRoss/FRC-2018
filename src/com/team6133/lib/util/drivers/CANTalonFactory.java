@@ -62,13 +62,6 @@ public class CANTalonFactory {
 		return createTalon(id, kDefaultConfiguration);
 	}
 
-	public static CANTalon createPermanentSlaveTalon(int id, int master_id) {
-		final CANTalon talon = createTalon(id, kSlaveConfiguration);
-		talon.changeControlMode(TalonControlMode.Follower);
-		talon.set(master_id);
-		return talon;
-	}
-
 	public static CANTalon createTalon(int id, Configuration config) {
 		CANTalon talon = new LazyCANTalon(id, config.CONTROL_FRAME_PERIOD_MS);
 		talon.changeControlMode(CANTalon.TalonControlMode.Voltage);

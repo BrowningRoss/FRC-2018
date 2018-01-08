@@ -30,22 +30,8 @@ public class AutoModeSelector {
 	}
 
 	private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Center Gear then Shoot Red",
-			() -> new CenterGear());
+			() -> new StandStillMode());
 	private static final AutoModeCreator[] mAllModes = {
-			// new AutoModeCreator("Boiler Gear then 10 Ball Shoot Red", () ->
-			// new BoilerGearThenShootModeRed()),
-			// new AutoModeCreator("Boiler Gear then 10 Ball Shoot Blue", () ->
-			// new BoilerGearThenShootModeBlue()),
-			new AutoModeCreator("Center Gear then Shoot Red", () -> new CenterGear()),
-			new AutoModeCreator("Center Gear then Shoot Blue", () -> new CenterGear()),
-			// new AutoModeCreator("Ram Hopper Blue", () -> new
-			// RamHopperShootModeBlue()),
-			// new AutoModeCreator("Ram Hopper Red", () -> new
-			// RamHopperShootModeRed()),
-			// new AutoModeCreator("Gear then Hopper Shoot Blue", () -> new
-			// GearThenHopperShootModeBlue()),
-			// new AutoModeCreator("Gear then Hopper Shoot Red", () -> new
-			// GearThenHopperShootModeRed()),
 			new AutoModeCreator("Standstill", () -> new StandStillMode()), };
 
 	public static void initAutoModeSelector() {

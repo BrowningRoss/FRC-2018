@@ -1,18 +1,14 @@
 package com.team6133.frc2018;
 
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.team6133.frc2018.auto.AutoModeExecuter;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.frc2018.loops.RobotStateEstimator;
-import com.team6133.frc2018.loops.VisionProcessor;
 import com.team6133.frc2018.paths.profiles.PathAdapter;
 import com.team6133.frc2018.subsystems.*;
 import com.team6133.frc2018.subsystems.MotorGearGrabber.WantedState;
-import com.team6133.frc2018.vision.VisionServer;
 import com.team6133.lib.util.*;
 import com.team6133.lib.util.math.RigidTransform2d;
 
@@ -161,6 +157,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousPeriodic() {
 		allPeriodic();
+		System.out.println("x:"+mRobotState.getLatestFieldToVehicle().getValue().getTranslation().x());
 	}
 
 	/**
@@ -394,6 +391,7 @@ public class Robot extends IterativeRobot {
 		mEnabledLooper.outputToSmartDashboard();
 		// SmartDashboard.putBoolean("camera_connected",
 		// mVisionServer.isConnected());
+
 
 		ConnectionMonitor.getInstance().setLastPacketTime(Timer.getFPGATimestamp());
 	}
