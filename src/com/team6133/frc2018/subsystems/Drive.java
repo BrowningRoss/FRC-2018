@@ -1,11 +1,13 @@
 package com.team6133.frc2018.subsystems;
 
-import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import com.ctre.CANTalon;
-import com.ctre.CANTalon.StatusFrameRate;
-import com.ctre.CANTalon.VelocityMeasurementPeriod;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
+import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 
 import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.Kinematics;
@@ -39,7 +41,6 @@ import java.util.Optional;
 public class Drive extends Subsystem {
 
 	private static Drive mInstance = new Drive();
-	private static RobotDrive mRobotDrive;
 
 	public static Drive getInstance() {
 		return mInstance;
@@ -48,8 +49,7 @@ public class Drive extends Subsystem {
 	// The robot drivetrain's various states.
 	public enum DriveControlState {
 		OPEN_LOOP, // open loop voltage control
-		VELOCITY_SETPOINT, // velocity PID control
-		PATH_FOLLOWING, // used for autonomous driving
+		HEADING_SETPOINT, // heading PID control
 		TURN_TO_HEADING, // turn in place
 	}
 
@@ -70,11 +70,14 @@ public class Drive extends Subsystem {
 		return false;
 	}
 
+	// Mecanum Drive Controller
+	private final MecanumDrive mMecanumDrive;
+
 	// Control states
 	private DriveControlState mDriveControlState;
 
 	// Hardware
-	private final CANTalon mFrontLeft, mFrontRight, mRearLeft, mRearRight;
+	private final WPI_TalonSRX mFrontLeft, mFrontRight, mRearLeft, mRearRight;
 	private final NavX mNavXBoard;
 
 	// Controllers
@@ -86,7 +89,6 @@ public class Drive extends Subsystem {
 	private Path mCurrentPath = null;
 
 	// Hardware states
-	private boolean mIsHighGear;
 	private boolean mIsBrakeMode;
 	private boolean mIsOnTarget = false;
 	private boolean mIsApproaching = false;
@@ -110,7 +112,9 @@ public class Drive extends Subsystem {
 				switch (mDriveControlState) {
 				case OPEN_LOOP:
 					return;
-				case VELOCITY_SETPOINT:
+				case HEADING_SETPOINT:
+					return;
+				case TURN_TO_HEADING:
 					return;
 				default:
 					System.out.println("Unexpected drive control state: " + mDriveControlState);
@@ -129,20 +133,16 @@ public class Drive extends Subsystem {
 	private Drive() {
 		// Start all Talons in open loop mode.
 		mFrontLeft = CANTalonFactory.createDefaultTalon(Constants.kFrontLeftDriveId);
-		mFrontLeft.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		mFrontLeft.setStatusFrameRateMs(StatusFrameRate.Feedback, 5);
+		mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
 
 		mFrontRight = CANTalonFactory.createDefaultTalon(Constants.kFrontRightDriveId);
-		mFrontLeft.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		mFrontRight.setStatusFrameRateMs(StatusFrameRate.Feedback, 5);
+		mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
 
 		mRearLeft = CANTalonFactory.createDefaultTalon(Constants.kRearLeftDriveId);
-		mRearLeft.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		mRearLeft.setStatusFrameRateMs(StatusFrameRate.Feedback, 5);
+		mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
 
 		mRearRight = CANTalonFactory.createDefaultTalon(Constants.kRearRightDriveId);
-		mRearRight.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		mRearRight.setStatusFrameRateMs(StatusFrameRate.Feedback, 5);
+		mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
 
 
 		setOpenLoop(DriveSignal.NEUTRAL);
@@ -153,6 +153,9 @@ public class Drive extends Subsystem {
 		// Force a CAN message across.
 		mIsBrakeMode = true;
 		setBrakeMode(false);
+
+		// Initialize the Mecanum Drive
+		mMecanumDrive = new MecanumDrive(mFrontLeft, mRearLeft, mFrontRight, mRearRight);
 
 		mCSVWriter = new ReflectingCSVWriter<PathFollower.DebugOutput>("/home/lvuser/PATH-FOLLOWER-LOGS.csv",
 				PathFollower.DebugOutput.class);
@@ -184,17 +187,6 @@ public class Drive extends Subsystem {
 		// So set negative on the right master.
 
 
-	}
-
-	public boolean isHighGear() {
-		return mIsHighGear;
-	}
-
-	public synchronized void setHighGear(boolean wantsHighGear) {
-		if (wantsHighGear != mIsHighGear) {
-			mIsHighGear = wantsHighGear;
-			// ~!@mShifter.set(!wantsHighGear);
-		}
 	}
 
 	public boolean isBrakeMode() {

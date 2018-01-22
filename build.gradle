@@ -1,9 +1,7 @@
 plugins {
     id "java"
-    id "eclipse"
     id "idea"
-    id "jaci.openrio.gradle.GradleRIO" version "2018.01.07"
-    id "jaci.gradle.EmbeddedTools" version "2017.12.17"
+    id "jaci.openrio.gradle.GradleRIO" version "2018.01.18"
 
 }
 
