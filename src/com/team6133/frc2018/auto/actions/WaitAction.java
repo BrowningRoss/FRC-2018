@@ -9,32 +9,31 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public class WaitAction implements Action {
 
-	private double mTimeToWait;
-	private double mStartTime;
-	private Drive mDrive = Drive.getInstance();
+    private double mTimeToWait;
+    private double mStartTime;
+    private Drive mDrive = Drive.getInstance();
 
-	public WaitAction(double timeToWait) {
-		mTimeToWait = timeToWait;
-	}
+    public WaitAction(double timeToWait) {
+        mTimeToWait = timeToWait;
+    }
 
-	@Override
-	public boolean isFinished() {
-		return Timer.getFPGATimestamp() - mStartTime >= mTimeToWait;
-	}
+    @Override
+    public boolean isFinished() {
+        return Timer.getFPGATimestamp() - mStartTime >= mTimeToWait;
+    }
 
-	@Override
-	public void update() {
+    @Override
+    public void update() {
 
-	}
+    }
 
-	@Override
-	public void done() {
+    @Override
+    public void done() {
 
-	}
+    }
 
-	@Override
-	public void start() {
-		mDrive.forceDoneWithPath();
-		mStartTime = Timer.getFPGATimestamp();
-	}
+    @Override
+    public void start() {
+        mStartTime = Timer.getFPGATimestamp();
+    }
 }

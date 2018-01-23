@@ -10,82 +10,80 @@ import com.team6133.lib.util.LatchedBoolean;
  */
 public class ConnectionMonitor extends Subsystem {
 
-	public static double kConnectionTimeoutSec = 1.0;
+    public static double kConnectionTimeoutSec = 1.0;
 
-	private static ConnectionMonitor mInstance = null;
+    private static ConnectionMonitor mInstance = null;
+    private double mLastPacketTime;
+    private LatchedBoolean mJustReconnected;
+    private LatchedBoolean mJustDisconnected;
+    private LED mLED;
+    ConnectionMonitor() {
+        mLastPacketTime = 0.0;
+        mJustReconnected = new LatchedBoolean();
+        mJustDisconnected = new LatchedBoolean();
+        mLED = LED.getInstance();
+    }
 
-	public static ConnectionMonitor getInstance() {
-		if (mInstance == null) {
-			mInstance = new ConnectionMonitor();
-		}
-		return mInstance;
-	}
+    public static ConnectionMonitor getInstance() {
+        if (mInstance == null) {
+            mInstance = new ConnectionMonitor();
+        }
+        return mInstance;
+    }
 
-	private double mLastPacketTime;
-	private LatchedBoolean mJustReconnected;
-	private LatchedBoolean mJustDisconnected;
-	private LED mLED;
+    @Override
+    public void registerEnabledLoops(Looper enabledLooper) {
+        enabledLooper.register(new Loop() {
+            @Override
+            public void onStart(double timestamp) {
+                synchronized (ConnectionMonitor.this) {
+                    mLastPacketTime = timestamp;
+                }
+            }
 
-	ConnectionMonitor() {
-		mLastPacketTime = 0.0;
-		mJustReconnected = new LatchedBoolean();
-		mJustDisconnected = new LatchedBoolean();
-		mLED = LED.getInstance();
-	}
+            @Override
+            public void onLoop(double timestamp) {
+                synchronized (ConnectionMonitor.this) {
+                    boolean has_connection = true;
+                    if (timestamp - mLastPacketTime > kConnectionTimeoutSec) {
+                        mLED.setWantedState(LED.WantedState.BLINK);
+                        has_connection = false;
+                    }
 
-	@Override
-	public void registerEnabledLoops(Looper enabledLooper) {
-		enabledLooper.register(new Loop() {
-			@Override
-			public void onStart(double timestamp) {
-				synchronized (ConnectionMonitor.this) {
-					mLastPacketTime = timestamp;
-				}
-			}
+                    if (mJustReconnected.update(has_connection)) {
+                        // Reconfigure blink if we are just connected.
+                        mLED.configureBlink(LED.kDefaultBlinkCount, LED.kDefaultBlinkDuration);
+                    }
 
-			@Override
-			public void onLoop(double timestamp) {
-				synchronized (ConnectionMonitor.this) {
-					boolean has_connection = true;
-					if (timestamp - mLastPacketTime > kConnectionTimeoutSec) {
-						mLED.setWantedState(LED.WantedState.BLINK);
-						has_connection = false;
-					}
+                    if (mJustDisconnected.update(!has_connection)) {
+                        // Reconfigure blink if we are just disconnected.
+                        mLED.configureBlink(LED.kDefaultBlinkCount, LED.kDefaultBlinkDuration * 2.0);
+                    }
+                }
+            }
 
-					if (mJustReconnected.update(has_connection)) {
-						// Reconfigure blink if we are just connected.
-						mLED.configureBlink(LED.kDefaultBlinkCount, LED.kDefaultBlinkDuration);
-					}
+            @Override
+            public void onStop(double timestamp) {
 
-					if (mJustDisconnected.update(!has_connection)) {
-						// Reconfigure blink if we are just disconnected.
-						mLED.configureBlink(LED.kDefaultBlinkCount, LED.kDefaultBlinkDuration * 2.0);
-					}
-				}
-			}
+            }
+        });
+    }
 
-			@Override
-			public void onStop(double timestamp) {
+    @Override
+    public void outputToSmartDashboard() {
+    }
 
-			}
-		});
-	}
+    @Override
+    public void stop() {
 
-	@Override
-	public void outputToSmartDashboard() {
-	}
+    }
 
-	@Override
-	public void stop() {
+    @Override
+    public void zeroSensors() {
 
-	}
+    }
 
-	@Override
-	public void zeroSensors() {
-
-	}
-
-	public synchronized void setLastPacketTime(double timestamp) {
-		mLastPacketTime = timestamp;
-	}
+    public synchronized void setLastPacketTime(double timestamp) {
+        mLastPacketTime = timestamp;
+    }
 }

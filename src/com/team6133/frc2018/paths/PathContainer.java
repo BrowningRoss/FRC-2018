@@ -9,9 +9,9 @@ import com.team6133.lib.util.math.RigidTransform2d;
  * in reverse along the path.
  */
 public interface PathContainer {
-	Path buildPath();
+    Path buildPath();
 
-	RigidTransform2d getStartPose();
+    RigidTransform2d getStartPose();
 
-	boolean isReversed();
+    boolean isReversed();
 }

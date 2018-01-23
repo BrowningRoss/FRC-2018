@@ -4,45 +4,40 @@ package com.team6133.frc2018;
  * A basic framework for robot controls that other controller classes implement
  */
 public interface ControlBoardInterface {
-	// DRIVER CONTROLS
-	double getThrottle();
+    // DRIVER CONTROLS
+    double getThrottleX();
 
-	double getTurn();
+    double getThrottleY();
 
-	boolean getQuickTurn();
+    double getTwist();
 
-	boolean getLowGear();
 
-	boolean getAimButton();
+    // OPERATOR CONTROLS
+    boolean getFeedButton();
 
-	boolean getDriveAimButton();
+    boolean getIntakeButton();
 
-	// OPERATOR CONTROLS
-	boolean getFeedButton();
+    boolean getShooterOpenLoopButton();
 
-	boolean getIntakeButton();
+    boolean getExhaustButton();
 
-	boolean getShooterOpenLoopButton();
+    boolean getUnjamButton();
 
-	boolean getExhaustButton();
+    boolean getShooterClosedLoopButton();
 
-	boolean getUnjamButton();
+    boolean getFlywheelSwitch();
 
-	boolean getShooterClosedLoopButton();
+    boolean getHangButton();
 
-	boolean getFlywheelSwitch();
+    boolean getGrabGearButton();
 
-	boolean getHangButton();
+    boolean getScoreGearButton();
 
-	boolean getGrabGearButton();
+    boolean getActuateHopperButton();
 
-	boolean getScoreGearButton();
+    boolean getBlinkLEDButton();
 
-	boolean getActuateHopperButton();
+    boolean getRangeFinderButton();
 
-	boolean getBlinkLEDButton();
-
-	boolean getRangeFinderButton();
-
-	boolean getWantGearDriveLimit();
+    boolean getWantGearDriveLimit();
 }

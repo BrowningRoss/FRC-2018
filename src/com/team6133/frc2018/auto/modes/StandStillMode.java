@@ -8,8 +8,8 @@ import com.team6133.frc2018.auto.AutoModeEndedException;
  * standstill
  */
 public class StandStillMode extends AutoModeBase {
-	@Override
-	protected void routine() throws AutoModeEndedException {
-		System.out.println("Starting Stand Still Mode... Done!");
-	}
+    @Override
+    protected void routine() throws AutoModeEndedException {
+        System.out.println("Starting Stand Still Mode... Done!");
+    }
 }

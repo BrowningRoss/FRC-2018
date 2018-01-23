@@ -7,7 +7,7 @@ import com.team6133.frc2018.loops.Looper;
  * subsystems. Each subsystem outputs commands to SmartDashboard, has a stop
  * routine (for after each match), and a routine to zero all sensors, which
  * helps with calibration.
- * 
+ * <p>
  * All Subsystems only have one instance (after all, one robot does not have two
  * drivetrains), and functions get the instance of the drivetrain and act
  * accordingly. Subsystems are also a state machine with a desired state and
@@ -16,14 +16,16 @@ import com.team6133.frc2018.loops.Looper;
  * at the start of the match.
  */
 public abstract class Subsystem {
-	public void writeToLog() {
-	};
+    public void writeToLog() {
+    }
 
-	public abstract void outputToSmartDashboard();
+    ;
 
-	public abstract void stop();
+    public abstract void outputToSmartDashboard();
 
-	public abstract void zeroSensors();
+    public abstract void stop();
 
-	public abstract void registerEnabledLoops(Looper enabledLooper);
+    public abstract void zeroSensors();
+
+    public abstract void registerEnabledLoops(Looper enabledLooper);
 }
