@@ -91,6 +91,7 @@ public class CANTalonFactory {
         public boolean INVERTED = false;
         public int REVERSE_SOFT_LIMIT = 0;
         public boolean SAFETY_ENABLED = false;
+        public NeutralMode BRAKE_OR_COAST = NeutralMode.Brake;
 
         public int CONTROL_FRAME_PERIOD_MS = 5;
         public int MOTION_CONTROL_FRAME_PERIOD_MS = 100;
@@ -99,8 +100,7 @@ public class CANTalonFactory {
         public int QUAD_ENCODER_STATUS_FRAME_RATE_MS = 100;
         public int ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = 100;
         public int PULSE_WIDTH_STATUS_FRAME_RATE_MS = 100;
-        public int TIMEOUT_MS = 100;
-        public NeutralMode BRAKE_OR_COAST = NeutralMode.Brake;
+        public int TIMEOUT_MS = 10;
 
         public VelocityMeasPeriod VELOCITY_MEASUREMENT_PERIOD = VelocityMeasPeriod.Period_100Ms;
         public int VELOCITY_MEASUREMENT_ROLLING_AVERAGE_WINDOW = 64;

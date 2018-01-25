@@ -16,10 +16,15 @@ public class Constants extends ConstantsBase {
     public static String kGameSpecificMessage = "";
 
     // Drive
-    public static final int kFrontLeftDriveId = 7;
-    public static final int kRearLeftDriveId = 6;
-    public static final int kFrontRightDriveId = 4;
-    public static final int kRearRightDriveId = 1;
+    public static final int kFrontLeftDriveId   = 7;
+    public static final int kRearLeftDriveId    = 6;
+    public static final int kFrontRightDriveId  = 4;
+    public static final int kRearRightDriveId   = 1;
+
+    // Intake
+    public static final int kIntakeArmId        = 5;
+    public static final int kIntakeLeftWheelId  = 2;
+    public static final int kIntakeRightWheelId = 3;
 
 
     /* ROBOT PHYSICAL CONSTANTS */
@@ -38,15 +43,6 @@ public class Constants extends ConstantsBase {
     public static double kCenterToSideBumperDistance;
     // PID gains for drive velocity loop
     // Units: setpoint, error, and output are in inches per second.
-    public static double kDriveHighGearVelocityKp;
-    public static double kDriveHighGearVelocityKi;
-    public static double kDriveHighGearVelocityKd;
-    public static double kDriveHighGearVelocityKf;
-    public static int kDriveHighGearVelocityIZone;
-    public static double kDriveHighGearVelocityRampRate;
-    public static double kDriveHighGearNominalOutput;
-    public static double kDriveHighGearMaxSetpoint;
-    public static double kDriveVoltageCompensationRampRate = 0.0;
     // Turn to heading gains
     public static double kDriveTurnKp;
     public static double kDriveTurnKi;

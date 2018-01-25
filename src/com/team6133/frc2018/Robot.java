@@ -2,7 +2,6 @@ package com.team6133.frc2018;
 
 import com.team6133.frc2018.auto.AutoModeExecuter;
 import com.team6133.frc2018.loops.Looper;
-import com.team6133.frc2018.paths.profiles.PathAdapter;
 import com.team6133.frc2018.subsystems.ConnectionMonitor;
 import com.team6133.frc2018.subsystems.Drive;
 import com.team6133.lib.util.*;
@@ -93,7 +92,7 @@ public class Robot extends IterativeRobot {
             mDelayedAimButton.update(Timer.getFPGATimestamp(), true);
 
             // Pre calculate the paths we use for auto.
-            PathAdapter.calculatePaths();
+            //~!@PathAdapter.calculatePaths();
 
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -199,6 +198,9 @@ public class Robot extends IterativeRobot {
             // !wants_aim_button);
 
             mDrive.setOpenLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
+            //mDrive.setOpenLoop(mDriveHelper.mecDrive(0,0.25,0));
+            //mDrive.setPolarDrive(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
+
             /*
              * ~!@ if (wants_aim_button || mControlBoard.getDriveAimButton()) {
              *
@@ -342,7 +344,7 @@ public class Robot extends IterativeRobot {
         Timer.delay(0.5);
 
         boolean results = true;
-        //results &= Drive.getInstance().checkSystem();
+        results &= Drive.getInstance().checkSystem();
 
         if (!results) {
             System.out.println("CHECK ABOVE OUTPUT SOME SYSTEMS FAILED!!!");
@@ -353,6 +355,7 @@ public class Robot extends IterativeRobot {
 
     @Override
     public void testPeriodic() {
+        allPeriodic();
     }
 
     /**

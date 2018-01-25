@@ -2,8 +2,8 @@ package com.team6133.lib.util;
 
 public class DriveHelper {
 
-    private static final double kThrottleDeadband_X = 0.10;
-    private static final double kThrottleDeadband_Y = 0.15;
+    private static final double kThrottleDeadband_X = 0.15;
+    private static final double kThrottleDeadband_Y = 0.10;
     private static final double kThrottleDeadband_Twist = 0.25;
 
     private static final double kMin_X = 0.02;
@@ -66,7 +66,7 @@ public class DriveHelper {
         adjusted_y = y == 0.0 ? 0.0 : kThrottle_Y.getInterpolated(new InterpolatingDouble(y)).value;
         adjusted_twist =  twist == 0.0 ? 0.0 : kThrottle_Twist.getInterpolated(new InterpolatingDouble(twist)).value;
 
-        return new DriveSignal(adjusted_x, adjusted_y, adjusted_twist);
+        return new DriveSignal(-adjusted_x, adjusted_y, adjusted_twist);
     }
 
     public double handleDeadband(double val, double deadband) {

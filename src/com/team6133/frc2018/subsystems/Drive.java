@@ -1,5 +1,6 @@
 package com.team6133.frc2018.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.team6133.frc2018.Constants;
@@ -7,13 +8,17 @@ import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.lib.util.DriveSignal;
 import com.team6133.lib.util.ReflectingCSVWriter;
+import com.team6133.lib.util.Util;
 import com.team6133.lib.util.control.PathFollower;
 import com.team6133.lib.util.drivers.CANTalonFactory;
 import com.team6133.lib.util.drivers.NavXmicro;
 import com.team6133.lib.util.math.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import java.util.Arrays;
 
 /**
  * This subsystem consists of the robot's drivetrain: 4 CIM motors, 4 talons,
@@ -58,6 +63,8 @@ public class Drive extends Subsystem {
                         return;
                     case TURN_TO_HEADING:
                         return;
+                    case POLAR_DRIVE:
+                        return;
                     default:
                         System.out.println("Unexpected drive control state: " + mDriveControlState);
                         break;
@@ -76,16 +83,16 @@ public class Drive extends Subsystem {
     private Drive() {
         // Start all Talons in open loop mode.
         mFrontLeft = CANTalonFactory.createDefaultTalon(Constants.kFrontLeftDriveId);
-        mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
+        mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
 
         mFrontRight = CANTalonFactory.createDefaultTalon(Constants.kFrontRightDriveId);
-        mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
+        mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
 
         mRearLeft = CANTalonFactory.createDefaultTalon(Constants.kRearLeftDriveId);
-        mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
+        mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
 
         mRearRight = CANTalonFactory.createDefaultTalon(Constants.kRearRightDriveId);
-        mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 100);
+        mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
 
 
 
@@ -119,11 +126,23 @@ public class Drive extends Subsystem {
         }
         try {
             mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist(), getGyroAngle().getDegrees());
-        } catch (NullPointerException ex) {
+        } catch (Throwable t) {
             mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist());
+            throw t;
         }
 
 
+    }
+
+    public synchronized void setPolarDrive(DriveSignal signal) {
+        if (mDriveControlState != DriveControlState.POLAR_DRIVE) {
+            mDriveControlState = DriveControlState.POLAR_DRIVE;
+        }
+        try {
+            mMecanumDrive.drivePolar(signal.getY(), getGyroAngle().getDegrees(), signal.getTwist());
+        } catch (Throwable t) {
+            throw t;
+        }
     }
 
     @Override
@@ -169,6 +188,79 @@ public class Drive extends Subsystem {
         OPEN_LOOP, // open loop voltage control
         HEADING_SETPOINT, // heading PID control
         TURN_TO_HEADING, // turn in place
+        POLAR_DRIVE,
+    }
+
+    public boolean checkSystem() {
+        System.out.println("Testing DRIVE.---------------------------------");
+        final double kCurrentThres = 0.5;
+
+        mFrontLeft.set(ControlMode.Current, 0);
+        mRearLeft.set(ControlMode.Current, 0);
+        mFrontRight.set(ControlMode.Current, 0);
+        mRearRight.set(ControlMode.Current, 0);
+
+        mFrontLeft.set(ControlMode.PercentOutput, 0.75);
+        Timer.delay(4.0);
+        final double currentFrontLeft = mFrontLeft.getOutputCurrent();
+        mFrontLeft.set(ControlMode.PercentOutput, 0);
+
+        Timer.delay(2.0);
+
+        mRearLeft.set(ControlMode.PercentOutput, 0.75);
+        Timer.delay(4.0);
+        final double currentRearLeft = mRearLeft.getOutputCurrent();
+        mRearLeft.set(ControlMode.PercentOutput, 0);
+
+        Timer.delay(2.0);
+
+        mFrontRight.set(ControlMode.PercentOutput, 0.75);
+        Timer.delay(4.0);
+        final double currentFrontRight = mFrontRight.getOutputCurrent();
+        mFrontRight.set(ControlMode.PercentOutput, 0);
+
+        Timer.delay(2.0);
+
+        mRearRight.set(ControlMode.PercentOutput, 0.75);
+        Timer.delay(4.0);
+        final double currentRearRight = mRearRight.getOutputCurrent();
+        mRearRight.set(ControlMode.PercentOutput, 0);
+
+
+        System.out.println("Front Left  Current: " + currentFrontLeft  + " Rear Left  Current: "
+                + currentRearLeft);
+        System.out.println("Front Right Current: " + currentFrontRight + " Rear Right Current: "
+                + currentRearRight);
+
+        boolean failure = false;
+
+        if (currentFrontRight < kCurrentThres) {
+            failure = true;
+            System.out.println("!!!!!!!!!!!!!!!!!! Front Right Current Low !!!!!!!!!!");
+        }
+
+        if (currentRearRight < kCurrentThres) {
+            failure = true;
+            System.out.println("!!!!!!!!!!!!!!!!!! Rear  Right Current Low !!!!!!!!!!");
+        }
+
+        if (currentFrontLeft < kCurrentThres) {
+            failure = true;
+            System.out.println("!!!!!!!!!!!!!!!!!! Front Left  Current Low !!!!!!!!!!");
+        }
+
+        if (currentRearLeft < kCurrentThres) {
+            failure = true;
+            System.out.println("!!!!!!!!!!!!!!!!!! Rear  Left  Current Low !!!!!!!!!!");
+        }
+
+        if (!Util.allCloseTo(Arrays.asList(currentFrontLeft, currentRearLeft, currentFrontRight, currentRearRight), currentFrontLeft,
+                5.0)) {
+            failure = true;
+            System.out.println("!!!!!!!!!!!!!!!!!! Drive Currents Different !!!!!!!!!!");
+        }
+
+        return !failure;
     }
 
 
