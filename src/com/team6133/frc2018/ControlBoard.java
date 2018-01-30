@@ -49,6 +49,16 @@ public class ControlBoard implements ControlBoardInterface {
 
     // OPERATOR CONTROLS
     @Override
+    public boolean getRotateLeft() {
+        return mButtonBoard.getRawButton(1);
+    }
+
+    @Override
+    public boolean getRotateRight() {
+        return mButtonBoard.getRawButton(4);
+    }
+
+    @Override
     public boolean getFeedButton() {
         return mButtonBoard.getRawAxis(1) < -0.1;
     }

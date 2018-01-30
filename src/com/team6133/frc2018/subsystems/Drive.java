@@ -7,14 +7,13 @@ import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.lib.util.DriveSignal;
-import com.team6133.lib.util.ReflectingCSVWriter;
 import com.team6133.lib.util.Util;
-import com.team6133.lib.util.control.PathFollower;
 import com.team6133.lib.util.drivers.CANTalonFactory;
 import com.team6133.lib.util.drivers.NavXmicro;
 import com.team6133.lib.util.math.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.command.PIDSubsystem;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -38,12 +37,12 @@ public class Drive extends Subsystem {
     private final WPI_TalonSRX mFrontLeft, mFrontRight, mRearLeft, mRearRight;
     private final NavXmicro mNavXBoard;
     // Logging
-    private final ReflectingCSVWriter<PathFollower.DebugOutput> mCSVWriter;
+    //???private final ReflectingCSVWriter<PathFollower.DebugOutput> mCSVWriter;
     // Control states
     private DriveControlState mDriveControlState;
     // These gains get reset below!!
-    private Rotation2d mTargetHeading = new Rotation2d();
-    // Hardware states
+    private Rotation2d mTargetHeading = new Rotation2d(Rotation2d.fromDegrees(0));
+    // Loop control
     private final Loop mLoop = new Loop() {
         @Override
         public void onStart(double timestamp) {
@@ -75,9 +74,41 @@ public class Drive extends Subsystem {
         @Override
         public void onStop(double timestamp) {
             stop();
-            mCSVWriter.flush();
+            //---mCSVWriter.flush();
         }
     };
+
+    private class PIDTwist extends PIDSubsystem {
+
+        private DriveSignal mSignal;
+        public PIDTwist(double kP, double kI, double kD, double period) {
+            super(kP, kI, kD, period);
+            setAbsoluteTolerance(1.5);
+            getPIDController().setContinuous(true);
+        }
+
+        public void setDriveSignal(DriveSignal sig) {
+            mSignal = sig;
+        }
+
+        @Override
+        protected double returnPIDInput() {
+            return getGyroAngle().getDegrees();
+        }
+
+        @Override
+        protected void usePIDOutput(double output) {
+            mMecanumDrive.driveCartesian(mSignal.getX(), mSignal.getY(), output, getGyroAngle().getDegrees());
+        }
+
+        @Override
+        protected void initDefaultCommand() {
+
+        }
+    }
+
+    private final PIDTwist mPIDTwist = new PIDTwist(0.0175, 0.0015, 0, 5);
+
     private boolean mIsOnTarget = false;
     private boolean mIsApproaching = false;
     private Drive() {
@@ -94,7 +125,7 @@ public class Drive extends Subsystem {
         mRearRight = CANTalonFactory.createDefaultTalon(Constants.kRearRightDriveId);
         mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
 
-
+        mPIDTwist.disable();
 
 
         // Path Following stuff
@@ -104,8 +135,6 @@ public class Drive extends Subsystem {
         mMecanumDrive = new MecanumDrive(mFrontLeft, mRearLeft, mFrontRight, mRearRight);
         setOpenLoop(DriveSignal.NEUTRAL);
 
-        mCSVWriter = new ReflectingCSVWriter<PathFollower.DebugOutput>("/home/lvuser/PATH-FOLLOWER-LOGS.csv",
-                PathFollower.DebugOutput.class);
     }
 
     public static Drive getInstance() {
@@ -123,6 +152,8 @@ public class Drive extends Subsystem {
     public synchronized void setOpenLoop(DriveSignal signal) {
         if (mDriveControlState != DriveControlState.OPEN_LOOP) {
             mDriveControlState = DriveControlState.OPEN_LOOP;
+            System.out.println("Starting open loop control.");
+            mPIDTwist.disable();
         }
         try {
             mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist(), getGyroAngle().getDegrees());
@@ -130,8 +161,32 @@ public class Drive extends Subsystem {
             mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist());
             throw t;
         }
+    }
+
+    public synchronized void setClosedLoop( DriveSignal signal, double heading) {
+        if (mDriveControlState != DriveControlState.HEADING_SETPOINT) {
+            mDriveControlState = DriveControlState.HEADING_SETPOINT;
+
+            System.out.println("Starting closed loop control with heading = " + heading);
+        }
+        mTargetHeading = Rotation2d.fromDegrees(heading);
+        //---double dx = mTargetHeading.getDegrees() - getGyroAngle().getDegrees();
+        //---double kP = 0.0175;
 
 
+        //---double pidTwist = DriveHelper.throttleTwist(kP * dx);
+
+        try {
+            mPIDTwist.setDriveSignal(signal);
+            if (mPIDTwist.getSetpoint() != mTargetHeading.getDegrees()) {
+                mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
+            }
+            mPIDTwist.enable();
+            //---mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), -pidTwist, getGyroAngle().getDegrees());
+        } catch (Throwable t) {
+            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist());
+            throw t;
+        }
     }
 
     public synchronized void setPolarDrive(DriveSignal signal) {
@@ -182,6 +237,7 @@ public class Drive extends Subsystem {
     public synchronized double getGyroVelocityDegreesPerSec() {
         return mNavXBoard.getYawRateDegreesPerSec();
     }
+
 
     // The robot drivetrain's various states.
     public enum DriveControlState {
@@ -262,6 +318,4 @@ public class Drive extends Subsystem {
 
         return !failure;
     }
-
-
 }

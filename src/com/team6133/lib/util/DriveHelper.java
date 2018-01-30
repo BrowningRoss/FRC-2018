@@ -69,6 +69,14 @@ public class DriveHelper {
         return new DriveSignal(-adjusted_x, adjusted_y, adjusted_twist);
     }
 
+    public static double throttleTwist(double twist) {
+        twist = (Math.abs(twist) > 0.02) ? twist : 0.0;
+        if (twist > kMax_Twist) twist = kMax_Twist;
+        if (twist < -kMax_Twist) twist = -kMax_Twist;
+
+        return twist;
+    }
+
     public double handleDeadband(double val, double deadband) {
         return (Math.abs(val) > Math.abs(deadband)) ? val : 0.0;
     }

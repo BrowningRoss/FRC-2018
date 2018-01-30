@@ -38,7 +38,7 @@ public class Intake extends Subsystem {
 
     private static Intake mInstance = null;
 
-    public Intake getInstance() {
+    public static Intake getInstance() {
         if (mInstance == null) {
             mInstance = new Intake();
         }
@@ -62,7 +62,7 @@ public class Intake extends Subsystem {
                             // intakes so the cube doesn't sly out as the subsystem pivots up.
         STOWED,             // arm up to high position, motors stopped
         EXHAUST_SWITCH,     // arm in mid position, motors in reverse
-        EXHAUST_EXHANGE,    // arm in lowest position, motors in reverse
+        EXHAUST_EXCHANGE,    // arm in lowest position, motors in reverse
         EXHAUST_SHOOTER     // arm in highest position, motors in reverse
     }
 
@@ -71,6 +71,7 @@ public class Intake extends Subsystem {
     private WantedState mWantedState;
     private SystemState mSystemState;
     private double mThresholdStart;
+    private boolean mHasCube = false;
 
     private Intake() {
         mArmTalon   = CANTalonFactory.createDefaultTalon(Constants.kIntakeArmId         );
@@ -92,6 +93,8 @@ public class Intake extends Subsystem {
         mRightTalon.set(ControlMode.PercentOutput, 0);
         +++*/
     }
+
+    public boolean hasCube() {return mHasCube;}
 
     public synchronized void setWantedState(WantedState wanted) {
         mWantedState = wanted;
@@ -115,6 +118,7 @@ public class Intake extends Subsystem {
                 if (true){//+++mLeftTalon.getOutputCurrent() > kIntakeThreshold) {
                     if (timeInState - mThresholdStart > kThresholdTime) {
                         // @TODO: LED indicator
+                        mHasCube = true;
                     } else {
                         if (mThresholdStart == Double.POSITIVE_INFINITY) {
                             mThresholdStart = timeInState;
@@ -141,6 +145,7 @@ public class Intake extends Subsystem {
                 if (true){//+++mLeftTalon.getOutputCurrent() > kIntakeThreshold) {
                     if (timeInState - mThresholdStart > kThresholdTime) {
                         // @TODO: LED indicator
+                        mHasCube = true;
                     } else {
                         if (mThresholdStart == Double.POSITIVE_INFINITY) {
                             mThresholdStart = timeInState;
@@ -163,6 +168,7 @@ public class Intake extends Subsystem {
             } else {
                 if (timeInState - mThresholdStart > kExhaustDelay) {
                     //+++motors on
+                    mHasCube = false;
                 } else {
                     //+++motors off
                 }
@@ -172,7 +178,7 @@ public class Intake extends Subsystem {
         }
 
         if (timeInState < kTransitionDelay) {
-            return SystemState.EXHAUST_EXHANGE;
+            return SystemState.EXHAUST_EXCHANGE;
         }
 
         if (timeInState > kExhaustDelay) {
@@ -183,7 +189,7 @@ public class Intake extends Subsystem {
 
         switch (mWantedState) {
             case SCORE_EXCHANGE:
-                return SystemState.EXHAUST_EXHANGE;
+                return SystemState.EXHAUST_EXCHANGE;
             case SCORE_SWITCH:
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 mArmTalon.set(ControlMode.Position, kExhaustSwitchSetpoint);
@@ -208,6 +214,7 @@ public class Intake extends Subsystem {
             } else {
                 if (timeInState - mThresholdStart > kExhaustDelay) {
                     //+++motors on
+                    mHasCube = false;
                 } else {
                     //+++motors off
                 }
@@ -217,7 +224,7 @@ public class Intake extends Subsystem {
         }
 
         if (timeInState < kTransitionDelay) {
-            return SystemState.EXHAUST_EXHANGE;
+            return SystemState.EXHAUST_EXCHANGE;
         }
 
         if (timeInState > kExhaustDelay) {
@@ -230,7 +237,7 @@ public class Intake extends Subsystem {
             case SCORE_EXCHANGE:
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 mArmTalon.set(ControlMode.Position, kExhaustExchangeSetpoint);
-                return SystemState.EXHAUST_EXHANGE;
+                return SystemState.EXHAUST_EXCHANGE;
             case SCORE_SWITCH:
                 return SystemState.EXHAUST_SWITCH;
             case ACQUIRE_FLOOR:
@@ -253,6 +260,7 @@ public class Intake extends Subsystem {
             } else {
                 if (timeInState - mThresholdStart > kExhaustDelay) {
                     //+++motors on
+                    mHasCube = false;
                 } else {
                     //+++motors off
                 }
@@ -270,7 +278,7 @@ public class Intake extends Subsystem {
                 return SystemState.STOWING;
             case SCORE_EXCHANGE:
                 mThresholdStart = Double.POSITIVE_INFINITY;
-                return SystemState.EXHAUST_EXHANGE;
+                return SystemState.EXHAUST_EXCHANGE;
             case SCORE_SWITCH:
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 return SystemState.EXHAUST_SWITCH;
@@ -316,7 +324,7 @@ public class Intake extends Subsystem {
                 return SystemState.INTAKE_STACK;
             case SCORE_EXCHANGE:
                 mThresholdStart = Double.POSITIVE_INFINITY;
-                return SystemState.EXHAUST_EXHANGE;
+                return SystemState.EXHAUST_EXCHANGE;
             case SCORE_SWITCH:
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 return SystemState.EXHAUST_SWITCH;
@@ -391,7 +399,7 @@ public class Intake extends Subsystem {
                         case INTAKE_STACK:
                             newState = handleStackIntake(timeInState);
                             break;
-                        case EXHAUST_EXHANGE:
+                        case EXHAUST_EXCHANGE:
                             newState = handleExhaustExchange(timeInState);
                             break;
                         case EXHAUST_SWITCH:

@@ -14,6 +14,19 @@ import java.util.Enumeration;
 public class Constants extends ConstantsBase {
     //Game Match Data
     public static String kGameSpecificMessage = "";
+    public static String kAllianceColor = "Red";
+    public static final String[] kMyGameMessages = new String[8];
+    static {
+        kMyGameMessages[0] = "LLLX";
+        kMyGameMessages[1] = "LLRX";
+        kMyGameMessages[2] = "LRLX";
+        kMyGameMessages[3] = "LRRX";
+        kMyGameMessages[4] = "RLLX";
+        kMyGameMessages[5] = "RLRX";
+        kMyGameMessages[6] = "RRLX";
+        kMyGameMessages[7] = "RRRX";
+    }
+
 
     // Drive
     public static final int kFrontLeftDriveId   = 7;
@@ -76,29 +89,6 @@ public class Constants extends ConstantsBase {
     public static int kGreenLEDId = 9;
     public static int kRangeLEDId = 8;
 
-    // Path following constants
-    public static double kMinLookAhead = 12.0; // inches
-    public static double kMinLookAheadSpeed = 9.0; // inches per second
-    public static double kMaxLookAhead = 24.0; // inches
-    public static double kMaxLookAheadSpeed = 75.0; // inches per second
-    public static double kDeltaLookAhead = kMaxLookAhead - kMinLookAhead;
-    public static double kDeltaLookAheadSpeed = kMaxLookAheadSpeed - kMinLookAheadSpeed;
-
-    public static double kInertiaSteeringGain = 0.0; // angular velocity command
-    // is multiplied by this
-    // gain *
-    // our speed
-    // in inches per sec
-    public static double kSegmentCompletionTolerance = 0.1; // inches
-    public static double kPathFollowingMaxAccel; // inches per second^2
-    public static double kPathFollowingMaxVel; // inches per second
-    public static double kPathFollowingProfileKp;
-    public static double kPathFollowingProfileKi;
-    public static double kPathFollowingProfileKv;
-    public static double kPathFollowingProfileKffv;
-    public static double kPathFollowingProfileKffa;
-    public static double kPathStopSteeringDistance;
-
 
     // Pose of the camera frame w.r.t. the robot frame
     public static double kCameraXOffset;
@@ -107,6 +97,25 @@ public class Constants extends ConstantsBase {
     public static double kCameraPitchAngleDegrees;
     public static double kCameraYawAngleDegrees;
     public static double kCameraDeadband;
+
+    // Raspberry Pi Information
+    public static String kVisionIP = "10.61.33.6";
+    public static String kDriveStationIP = "10.61.33.5";
+    public static String kRoborioIP = "10.61.33.2";
+    public static String kRadioIP = "10.61.33.1";
+    public static String kRoborioSubnetMask = "255.255.255.0";
+    public static String kDriverStationSubnetMask = "255.0.0.0";
+    public static String kVisionSubnetMask = "255.255.255.0";
+    public static int    kVisionPort = 5800;
+    public static int    kStreamingPort = 554;      // UDP/TCP 1180 - 1190: Camera Data
+                                                    // TCP 1735: SmartDashboard
+                                                    // UDP 1130: DS-to-Robot control data
+                                                    // UDP 1140: Robot-to-DS status data
+                                                    // HTTP 80: Camera/web interface
+                                                    // HTTP 443: Camera/web interface (secure)
+                                                    // UDP/TCP 554: Real-Time Streaming Protocol for h.264 camera streaming
+                                                    // UDP/TCP 5800-5810: Team Use
+
 
     /**
      * Make an {@link Solenoid} instance for the single-number ID of the

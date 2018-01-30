@@ -13,6 +13,10 @@ public interface ControlBoardInterface {
 
 
     // OPERATOR CONTROLS
+    boolean getRotateLeft();
+
+    boolean getRotateRight();
+
     boolean getFeedButton();
 
     boolean getIntakeButton();

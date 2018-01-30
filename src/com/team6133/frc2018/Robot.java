@@ -4,14 +4,16 @@ import com.team6133.frc2018.auto.AutoModeExecuter;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.frc2018.subsystems.ConnectionMonitor;
 import com.team6133.frc2018.subsystems.Drive;
+import com.team6133.frc2018.subsystems.Intake;
 import com.team6133.lib.util.*;
+import com.team6133.lib.util.drivers.RevDigitBoard;
 import com.team6133.lib.util.math.RigidTransform2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Timer;
-import sun.misc.Signal;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The main robot class, which instantiates all robot parts and helper classes
@@ -35,13 +37,14 @@ import java.util.Arrays;
 public class Robot extends IterativeRobot {
     // Create subsystem manager
     private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(Drive.getInstance(),
+            Intake.getInstance(),
             // ~!@Superstructure.getInstance(), Shooter.getInstance(),
             // Feeder.getInstance(), Hopper.getInstance(), Intake.getInstance(),
             ConnectionMonitor.getInstance()// , LED.getInstance(),
-            // MotorGearGrabber.getInstance()
     ));
     // Get subsystem instances
     private Drive mDrive = Drive.getInstance();
+    private Intake mIntake = Intake.getInstance();
     // ~!@private Superstructure mSuperstructure = Superstructure.getInstance();
 
     // private LED mLED = LED.getInstance();
@@ -51,6 +54,8 @@ public class Robot extends IterativeRobot {
     private ControlBoardInterface mControlBoard = ControlBoard.getInstance();
 
     private Looper mEnabledLooper = new Looper();
+
+    private RevDigitBoard mRevDigitBoard = new RevDigitBoard();
 
     // ~!@private VisionServer mVisionServer = VisionServer.getInstance();
 
@@ -120,6 +125,8 @@ public class Robot extends IterativeRobot {
             }
 
             zeroAllSensors();
+            mIntake.setWantedState(Intake.WantedState.HOLDING);
+
             // ~!@mSuperstructure.setWantedState(Superstructure.WantedState.IDLE);
             // ~!@mSuperstructure.setActuateHopper(false);
             // ~!@mSuperstructure.setOverrideCompressor(true);
@@ -165,8 +172,6 @@ public class Robot extends IterativeRobot {
             mDrive.setOpenLoop(DriveSignal.NEUTRAL);
 
             zeroAllSensors();
-            // ~!@mSuperstructure.reloadConstants();
-            // ~!@mSuperstructure.setOverrideCompressor(false);
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -191,15 +196,20 @@ public class Robot extends IterativeRobot {
             double xSpeed = mControlBoard.getThrottleX();
             double ySpeed = mControlBoard.getThrottleY();
             double twist  = mControlBoard.getTwist();
+            boolean rotateLeft = mControlBoard.getRotateLeft();
+            boolean rotateRight = mControlBoard.getRotateRight();
 
 
             // boolean wants_aim_button = mControlBoard.getAimButton();
             // wants_aim_button = !mDelayedAimButton.update(timestamp,
             // !wants_aim_button);
-
-            mDrive.setOpenLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
-            //mDrive.setOpenLoop(mDriveHelper.mecDrive(0,0.25,0));
-            //mDrive.setPolarDrive(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
+            if (!rotateLeft && !rotateRight) {
+                mDrive.setOpenLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
+            } else if (rotateLeft) {
+                mDrive.setClosedLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), 90);
+            } else {
+                mDrive.setClosedLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), -90);
+            }
 
             /*
              * ~!@ if (wants_aim_button || mControlBoard.getDriveAimButton()) {
@@ -333,10 +343,23 @@ public class Robot extends IterativeRobot {
          */
         zeroAllSensors();
         allPeriodic();
-        if ( Constants.kGameSpecificMessage.length() != 3) {
-            Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
-            Timer.delay(0.005);
+        if ( DriverStation.getInstance().isFMSAttached() ) {
+            if ( Constants.kGameSpecificMessage.length() != 3) {
+                Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
+                Timer.delay(0.005);
+            }
+        } else {
+            if ( Constants.kGameSpecificMessage.length() != 4) {
+                Constants.kGameSpecificMessage = Constants.kMyGameMessages[ThreadLocalRandom.current().nextInt(0,8)];
+            }
         }
+        if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Blue) {
+            Constants.kAllianceColor = "Blue";
+        } else {
+            Constants.kAllianceColor = "Red";
+        }
+        mRevDigitBoard.display(Constants.kGameSpecificMessage);
+
     }
 
     @Override

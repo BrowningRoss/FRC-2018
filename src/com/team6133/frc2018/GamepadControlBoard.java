@@ -28,6 +28,16 @@ public class GamepadControlBoard implements ControlBoardInterface {
     public double getTwist() {return 0;}
 
     @Override
+    public boolean getRotateLeft() {
+        return mGamepad.getRawButton(1);
+    }
+
+    @Override
+    public boolean getRotateRight() {
+        return mGamepad.getRawButton(4);
+    }
+
+    @Override
     public boolean getHangButton() {
         // A
         return mGamepad.getRawButton(1);
