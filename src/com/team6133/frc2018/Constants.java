@@ -48,40 +48,30 @@ public class Constants extends ConstantsBase {
     public static double kTrackWidthInches;
     public static double kTrackScrubFactor;
 
-    /* CONTROL LOOP GAINS */
     // Geometry
     public static double kCenterToFrontBumperDistance;
     public static double kCenterToIntakeDistance;
     public static double kCenterToRearBumperDistance;
     public static double kCenterToSideBumperDistance;
-    // PID gains for drive velocity loop
-    // Units: setpoint, error, and output are in inches per second.
-    // Turn to heading gains
-    public static double kDriveTurnKp;
-    public static double kDriveTurnKi;
-    public static double kDriveTurnKv;
+    /* CONTROL LOOP GAINS */
+    // PID gains for drive Heading Setpoint loop
+    public static final double kDriveTwistKp = 0.0175;
+    public static final double kDriveTwistKi = 0.0015;
+    public static final double kDriveTwistKd = 0.05;
+    public static final double kDriveTwistKf = 0;
+    // PID gains for drive Proximity Setpoint loop
+    public static final double kDriveProxKp  = 0.015;
+    public static final double kDriveProxKi  = 0.001;
+    public static final double kDriveProxKd  = 0.030;
+    public static final double kDriveProxKf  = 0;
 
+    public static final double kLaunchProxSetpoint = 0.0000;    // @TODO: Determine the correct setpoint.
 
-    // Do not change anything after this line unless you rewire the robot and
-    // update the spreadsheet!
-    // Port assignments should match up with the spreadsheet here:
-    // https://docs.google.com/spreadsheets/d/12_Mrd6xKmxCjKtsWNpWZDqT7ukrB9-1KKFCuRrO4aPM/edit#gid=0
-
-    /* TALONS */
-    // (Note that if multiple talons are dedicated to a mechanism, any sensors
-    // are attached to the master)
-    public static double kDriveTurnKffv;
-    public static double kDriveTurnKffa;
-    public static double kDriveTurnMaxVel;
-    public static double kDriveTurnMaxAcc;
-
+    public static double kTwistMaxOutput = 0.66;
 
     // Solenoids
-    // ~!@public static final int kShifterSolenoidId = 0; // PCM 0, Solenoid 0
-    // ~!@public static final int kIntakeDeploySolenoidId = 1; // PCM 0,
-    // Solenoid 1
-    // ~!@public static final int kHopperSolenoidId = 2; // PCM 0, Solenoid 2
-    // ~!@public static final int kGearWristSolenoid = 7; // PCM 0, Solenoid 7
+    public static final int kShooterSolenoidId = 0; // PCM 0, Solenoid 0
+
     // Analog Inputs
     public static int kLEDOnId = 2;
 
@@ -99,15 +89,16 @@ public class Constants extends ConstantsBase {
     public static double kCameraDeadband;
 
     // Raspberry Pi Information
-    public static String kVisionIP = "10.61.33.6";
-    public static String kDriveStationIP = "10.61.33.5";
-    public static String kRoborioIP = "10.61.33.2";
-    public static String kRadioIP = "10.61.33.1";
-    public static String kRoborioSubnetMask = "255.255.255.0";
-    public static String kDriverStationSubnetMask = "255.0.0.0";
-    public static String kVisionSubnetMask = "255.255.255.0";
-    public static int    kVisionPort = 5800;
-    public static int    kStreamingPort = 554;      // UDP/TCP 1180 - 1190: Camera Data
+    public static final String kVisionIP                  = "10.61.33.6";
+    public static final String kDriveStationIP            = "10.61.33.5";
+    public static final String kRoborioIP                 = "10.61.33.2";
+    public static final String kRadioIP                   = "10.61.33.1";
+    public static final String kRoborioSubnetMask         = "255.255.255.0";
+    public static final String kDriverStationSubnetMask   = "255.0.0.0";
+    public static final String kVisionSubnetMask          = "255.255.255.0";
+    public static final int    kVisionPort                = 5800;
+    public static final int    kStreamingPort             = 554;
+                                                    // UDP/TCP 1180 - 1190: Camera Data
                                                     // TCP 1735: SmartDashboard
                                                     // UDP 1130: DS-to-Robot control data
                                                     // UDP 1140: Robot-to-DS status data

@@ -49,12 +49,12 @@ public class ControlBoard implements ControlBoardInterface {
 
     // OPERATOR CONTROLS
     @Override
-    public boolean getRotateLeft() {
+    public boolean getRotateLeftButton() {
         return mButtonBoard.getRawButton(1);
     }
 
     @Override
-    public boolean getRotateRight() {
+    public boolean getRotateRightButton() {
         return mButtonBoard.getRawButton(4);
     }
 
@@ -84,7 +84,7 @@ public class ControlBoard implements ControlBoardInterface {
     }
 
     @Override
-    public boolean getShooterClosedLoopButton() {
+    public boolean getWantsLaunchButton() {
         return mButtonBoard.getRawButton(8);
     }
 
@@ -98,17 +98,14 @@ public class ControlBoard implements ControlBoardInterface {
         return mButtonBoard.getRawButton(10);
     }
 
-    @Override
     public boolean getGrabGearButton() {
         return mButtonBoard.getRawButton(2);
     }
 
-    @Override
     public boolean getScoreGearButton() {
         return mButtonBoard.getRawButton(1);
     }
 
-    @Override
     public boolean getActuateHopperButton() {
         return mButtonBoard.getRawButton(3);
     }

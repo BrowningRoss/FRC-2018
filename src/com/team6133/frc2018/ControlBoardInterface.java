@@ -13,9 +13,9 @@ public interface ControlBoardInterface {
 
 
     // OPERATOR CONTROLS
-    boolean getRotateLeft();
+    boolean getRotateLeftButton();
 
-    boolean getRotateRight();
+    boolean getRotateRightButton();
 
     boolean getFeedButton();
 
@@ -27,17 +27,11 @@ public interface ControlBoardInterface {
 
     boolean getUnjamButton();
 
-    boolean getShooterClosedLoopButton();
+    boolean getWantsLaunchButton();
 
     boolean getFlywheelSwitch();
 
     boolean getHangButton();
-
-    boolean getGrabGearButton();
-
-    boolean getScoreGearButton();
-
-    boolean getActuateHopperButton();
 
     boolean getBlinkLEDButton();
 

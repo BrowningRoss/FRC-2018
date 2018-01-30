@@ -1,5 +1,7 @@
 package com.team6133.lib.util;
 
+import com.team6133.frc2018.Constants;
+
 public class DriveHelper {
 
     private static final double kThrottleDeadband_X = 0.15;
@@ -12,7 +14,7 @@ public class DriveHelper {
 
     private static final double kMax_X =  1.0;
     private static final double kMax_Y =  1.0;
-    private static final double kMax_Twist =  0.66;
+    private static final double kMax_Twist = Constants.kTwistMaxOutput;
 
     private static InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> kThrottle_X = new InterpolatingTreeMap<>();
     private static InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> kThrottle_Y = new InterpolatingTreeMap<>();

@@ -196,19 +196,20 @@ public class Robot extends IterativeRobot {
             double xSpeed = mControlBoard.getThrottleX();
             double ySpeed = mControlBoard.getThrottleY();
             double twist  = mControlBoard.getTwist();
-            boolean rotateLeft = mControlBoard.getRotateLeft();
-            boolean rotateRight = mControlBoard.getRotateRight();
+            boolean rotateLeftButton = mControlBoard.getRotateLeftButton();
+            boolean rotateRightButton = mControlBoard.getRotateRightButton();
+            boolean wants_aim_button = mControlBoard.getWantsLaunchButton();
 
 
-            // boolean wants_aim_button = mControlBoard.getAimButton();
-            // wants_aim_button = !mDelayedAimButton.update(timestamp,
-            // !wants_aim_button);
-            if (!rotateLeft && !rotateRight) {
+            if (wants_aim_button) {
+                mDrive.handleAlignLaunch(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
+                // @TODO: Add more launcher functionality.
+            } else if (!rotateLeftButton && !rotateRightButton) {
                 mDrive.setOpenLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
-            } else if (rotateLeft) {
-                mDrive.setClosedLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), 90);
+            } else if (rotateLeftButton) {
+                mDrive.setClosedLoopHeading(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), 90);
             } else {
-                mDrive.setClosedLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), -90);
+                mDrive.setClosedLoopHeading(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), -90);
             }
 
             /*

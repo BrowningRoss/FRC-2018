@@ -8,6 +8,7 @@ import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.lib.util.DriveSignal;
 import com.team6133.lib.util.Util;
+import com.team6133.lib.util.control.SynchronousPIDF;
 import com.team6133.lib.util.drivers.CANTalonFactory;
 import com.team6133.lib.util.drivers.NavXmicro;
 import com.team6133.lib.util.math.Rotation2d;
@@ -42,6 +43,15 @@ public class Drive extends Subsystem {
     private DriveControlState mDriveControlState;
     // These gains get reset below!!
     private Rotation2d mTargetHeading = new Rotation2d(Rotation2d.fromDegrees(0));
+    // PID for heading control
+    private final SynchronousPIDF mPIDTwist = new SynchronousPIDF(Constants.kDriveTwistKp, Constants.kDriveTwistKi,
+                                                Constants.kDriveTwistKd, Constants.kDriveTwistKf);
+    // PID for proximity control
+    private final SynchronousPIDF mPIDProxFront = new SynchronousPIDF(Constants.kDriveProxKp, Constants.kDriveProxKi,
+                                                Constants.kDriveProxKd, Constants.kDriveProxKf);
+    private final double mThresholdTime = 0.33;     // time to delay in LAUNCH_SETPOINT state before using proximity sensors.
+    private double mTimeInState;
+    private double mCurrentStateStartTime;
     // Loop control
     private final Loop mLoop = new Loop() {
         @Override
@@ -50,17 +60,23 @@ public class Drive extends Subsystem {
                 setOpenLoop(DriveSignal.NEUTRAL);
                 mNavXBoard.reset();
             }
+            mCurrentStateStartTime = Timer.getFPGATimestamp();
+            mTimeInState = 0.0;
         }
 
         @Override
         public void onLoop(double timestamp) {
             synchronized (Drive.this) {
+                mTimeInState = Timer.getFPGATimestamp() - mCurrentStateStartTime;
                 switch (mDriveControlState) {
                     case OPEN_LOOP:
                         return;
                     case HEADING_SETPOINT:
+                        mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
                         return;
-                    case TURN_TO_HEADING:
+                    case LAUNCH_SETPOINT:
+                        mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
+                        mPIDProxFront.calculate(0.000, Constants.kLooperDt);    // @TODO: Add IRPD or Ultrasonic input
                         return;
                     case POLAR_DRIVE:
                         return;
@@ -78,37 +94,6 @@ public class Drive extends Subsystem {
         }
     };
 
-    private class PIDTwist extends PIDSubsystem {
-
-        private DriveSignal mSignal;
-        public PIDTwist(double kP, double kI, double kD, double period) {
-            super(kP, kI, kD, period);
-            setAbsoluteTolerance(1.5);
-            getPIDController().setContinuous(true);
-        }
-
-        public void setDriveSignal(DriveSignal sig) {
-            mSignal = sig;
-        }
-
-        @Override
-        protected double returnPIDInput() {
-            return getGyroAngle().getDegrees();
-        }
-
-        @Override
-        protected void usePIDOutput(double output) {
-            mMecanumDrive.driveCartesian(mSignal.getX(), mSignal.getY(), output, getGyroAngle().getDegrees());
-        }
-
-        @Override
-        protected void initDefaultCommand() {
-
-        }
-    }
-
-    private final PIDTwist mPIDTwist = new PIDTwist(0.0175, 0.0015, 0, 5);
-
     private boolean mIsOnTarget = false;
     private boolean mIsApproaching = false;
     private Drive() {
@@ -125,7 +110,14 @@ public class Drive extends Subsystem {
         mRearRight = CANTalonFactory.createDefaultTalon(Constants.kRearRightDriveId);
         mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
 
-        mPIDTwist.disable();
+        mPIDTwist.setInputRange(-180.0, 180.0);
+        mPIDTwist.setOutputRange(-Constants.kTwistMaxOutput, Constants.kTwistMaxOutput);
+        mPIDTwist.setContinuous();
+        mPIDTwist.setDeadband(0.02);
+
+        mPIDProxFront.setDeadband(0.02);
+        mPIDProxFront.setOutputRange(-1.0, 1.0);
+        mPIDProxFront.setInputRange(0, 100); //@TODO: Determine the correct input range
 
 
         // Path Following stuff
@@ -147,13 +139,16 @@ public class Drive extends Subsystem {
     }
 
     /**
-     * Configure talons for open loop control
+     * Open loop control of the robot.
+     * @param signal - the joystick drive signal
      */
     public synchronized void setOpenLoop(DriveSignal signal) {
         if (mDriveControlState != DriveControlState.OPEN_LOOP) {
             mDriveControlState = DriveControlState.OPEN_LOOP;
             System.out.println("Starting open loop control.");
-            mPIDTwist.disable();
+            mCurrentStateStartTime = Timer.getFPGATimestamp();
+            mPIDTwist.reset();
+            mPIDProxFront.reset();
         }
         try {
             mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist(), getGyroAngle().getDegrees());
@@ -163,35 +158,75 @@ public class Drive extends Subsystem {
         }
     }
 
-    public synchronized void setClosedLoop( DriveSignal signal, double heading) {
+    /**
+     * Enables PID Heading Control.  The driver can still operate in the x & y directions, but this function
+     * overrides the twist such that the robot strictly faces left or right.
+     * Used for aiming.
+     * @param signal - the joystick drive signal
+     * @param heading - the PID setpoint
+     */
+
+    public synchronized void setClosedLoopHeading( DriveSignal signal, double heading) {
+        mTargetHeading = Rotation2d.fromDegrees(heading);
+        if (mPIDTwist.getSetpoint() != mTargetHeading.getDegrees()) {
+            mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
+        }
         if (mDriveControlState != DriveControlState.HEADING_SETPOINT) {
             mDriveControlState = DriveControlState.HEADING_SETPOINT;
-
+            mCurrentStateStartTime = Timer.getFPGATimestamp();
+            mPIDTwist.resetIntegrator();
             System.out.println("Starting closed loop control with heading = " + heading);
         }
-        mTargetHeading = Rotation2d.fromDegrees(heading);
+
         //---double dx = mTargetHeading.getDegrees() - getGyroAngle().getDegrees();
         //---double kP = 0.0175;
-
-
         //---double pidTwist = DriveHelper.throttleTwist(kP * dx);
 
         try {
-            mPIDTwist.setDriveSignal(signal);
-            if (mPIDTwist.getSetpoint() != mTargetHeading.getDegrees()) {
-                mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
-            }
-            mPIDTwist.enable();
-            //---mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), -pidTwist, getGyroAngle().getDegrees());
+
+            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
         } catch (Throwable t) {
             mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist());
             throw t;
         }
     }
 
+    /**
+     * PID Control loop for aligning the drive for shooting.
+     * The robot will automatically face left or right (depending on the location of the scale).
+     * After a small delay, the robot will also use the proximity sensor to adjust to the GUARD RAIL.
+     * @param signal - the joystick drive signal
+     */
+    public synchronized void handleAlignLaunch(DriveSignal signal) {
+        if (mDriveControlState != DriveControlState.LAUNCH_SETPOINT) {
+            mPIDProxFront.resetIntegrator();
+            mPIDTwist.resetIntegrator();
+            if (Constants.kGameSpecificMessage.charAt(1) == 'L') {
+                mTargetHeading = Rotation2d.fromDegrees(-90);
+            } else {
+                mTargetHeading = Rotation2d.fromDegrees(90);
+            }
+            mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
+            mPIDProxFront.setSetpoint(Constants.kLaunchProxSetpoint);
+            mDriveControlState = DriveControlState.LAUNCH_SETPOINT;
+            mCurrentStateStartTime = Timer.getFPGATimestamp();
+            System.out.println("Aligning drive for " + Constants.kGameSpecificMessage.charAt(1) + " scale shot.");
+        }
+        if (mTimeInState > mThresholdTime) {
+            mMecanumDrive.driveCartesian(mPIDProxFront.get(), signal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+        } else {
+            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+        }
+    }
+
+    /**
+     * Configure the robot for Polar Drive.  Not likely to be used, but written for testing purposes.
+     * @param signal - the joystick drive signal
+     */
     public synchronized void setPolarDrive(DriveSignal signal) {
         if (mDriveControlState != DriveControlState.POLAR_DRIVE) {
             mDriveControlState = DriveControlState.POLAR_DRIVE;
+            mCurrentStateStartTime = Timer.getFPGATimestamp();
         }
         try {
             mMecanumDrive.drivePolar(signal.getY(), getGyroAngle().getDegrees(), signal.getTwist());
@@ -241,10 +276,10 @@ public class Drive extends Subsystem {
 
     // The robot drivetrain's various states.
     public enum DriveControlState {
-        OPEN_LOOP, // open loop voltage control
-        HEADING_SETPOINT, // heading PID control
-        TURN_TO_HEADING, // turn in place
-        POLAR_DRIVE,
+        OPEN_LOOP,          // open loop voltage control
+        HEADING_SETPOINT,   // heading PID control
+        LAUNCH_SETPOINT,    // launch PID control
+        POLAR_DRIVE,        // not used - here just for testing
     }
 
     public boolean checkSystem() {
