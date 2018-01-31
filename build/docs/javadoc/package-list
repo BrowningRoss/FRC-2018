@@ -1,0 +1,12 @@
+com.team6133.frc2018
+com.team6133.frc2018.auto
+com.team6133.frc2018.auto.actions
+com.team6133.frc2018.auto.modes
+com.team6133.frc2018.loops
+com.team6133.frc2018.subsystems
+com.team6133.frc2018.vision
+com.team6133.frc2018.vision.messages
+com.team6133.lib.util
+com.team6133.lib.util.control
+com.team6133.lib.util.drivers
+com.team6133.lib.util.math

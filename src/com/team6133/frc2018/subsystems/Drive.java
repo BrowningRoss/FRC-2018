@@ -21,10 +21,10 @@ import java.util.Arrays;
 
 /**
  * This subsystem consists of the robot's drivetrain: 4 CIM motors, 4 talons,
- * one solenoid and 2 pistons to shift gears, and a navX board. The Drive
- * subsystem has several control methods including open loop, velocity control,
- * and position control. The Drive subsystem also has several methods that
- * handle automatic aiming, autonomous path driving, and manual control.
+ * and a navXmicro board. The Drive subsystem has several control methods
+ * including open loop, heading control, and proximity control. The Drive
+ * subsystem also has several methods that handle automatic aiming alignment, autonomous path driving,
+ * and manual control.
  *
  * @see Subsystem
  */
