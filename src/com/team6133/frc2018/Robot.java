@@ -5,9 +5,10 @@ import com.team6133.frc2018.loops.Looper;
 import com.team6133.frc2018.subsystems.ConnectionMonitor;
 import com.team6133.frc2018.subsystems.Drive;
 import com.team6133.frc2018.subsystems.Intake;
-import com.team6133.lib.util.*;
+import com.team6133.lib.util.CrashTracker;
+import com.team6133.lib.util.DriveHelper;
+import com.team6133.lib.util.DriveSignal;
 import com.team6133.lib.util.drivers.RevDigitBoard;
-import com.team6133.lib.util.math.RigidTransform2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -62,11 +63,6 @@ public class Robot extends IterativeRobot {
     // private AnalogInput mCheckLightButton = new
     // AnalogInput(Constants.kLEDOnId);
 
-    private DelayedBoolean mDelayedAimButton;
-
-    private LatchedBoolean mCommitTuning = new LatchedBoolean();
-    private InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> mTuningFlywheelMap = new InterpolatingTreeMap<>();
-
     public Robot() {
         CrashTracker.logRobotConstruction();
     }
@@ -75,6 +71,14 @@ public class Robot extends IterativeRobot {
         mSubsystemManager.zeroSensors();
         mDrive.zeroSensors();
     }
+
+    private enum RobotControlState {
+        OPEN_LOOP,
+        HEADING_SETPOINT,
+        WANTS_AIM,
+    }
+
+    private RobotControlState mTeleopState;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -92,13 +96,6 @@ public class Robot extends IterativeRobot {
 
             AutoModeSelector.initAutoModeSelector();
 
-            mDelayedAimButton = new DelayedBoolean(Timer.getFPGATimestamp(), 0.1);
-            // Force an true update now to prevent robot from running at start.
-            mDelayedAimButton.update(Timer.getFPGATimestamp(), true);
-
-            // Pre calculate the paths we use for auto.
-            //~!@PathAdapter.calculatePaths();
-
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -111,7 +108,7 @@ public class Robot extends IterativeRobot {
      * drivebase, intake and superstructure to correct states). Then gets the
      * correct auto mode from the AutoModeSelector
      *
-     * @see AutoModeSelector.java
+     * @see AutoModeSelector
      */
     @Override
     public void autonomousInit() {
@@ -166,10 +163,10 @@ public class Robot extends IterativeRobot {
     public void teleopInit() {
         try {
             CrashTracker.logTeleopInit();
-
+            mTeleopState = RobotControlState.OPEN_LOOP;
             // Start loopers
             mEnabledLooper.start();
-            mDrive.setOpenLoop(DriveSignal.NEUTRAL);
+            mDrive.setOpenLoop();
 
             zeroAllSensors();
         } catch (Throwable t) {
@@ -180,10 +177,10 @@ public class Robot extends IterativeRobot {
 
     /**
      * This function is called periodically during operator control.
-     * <p>
+     *
      * The code uses state machines to ensure that no matter what buttons the
      * driver presses, the robot behaves in a safe and consistent manner.
-     * <p>
+     *
      * Based on driver input, the code sets a desired state for each subsystem.
      * Each subsystem will constantly compare its desired and actual states and
      * act to bring the two closer.
@@ -192,24 +189,42 @@ public class Robot extends IterativeRobot {
     public void teleopPeriodic() {
         try {
             double timestamp = Timer.getFPGATimestamp();
-            // Drive base
-            double xSpeed = mControlBoard.getThrottleX();
-            double ySpeed = mControlBoard.getThrottleY();
-            double twist  = mControlBoard.getTwist();
+            // Get Buttons
             boolean rotateLeftButton = mControlBoard.getRotateLeftButton();
             boolean rotateRightButton = mControlBoard.getRotateRightButton();
             boolean wants_aim_button = mControlBoard.getWantsLaunchButton();
 
+            // Get the joystick signals and send the modified DriveSignal to the Drive class.
+            // This MUST be done before calling any of the other Drive methods.
+            mDrive.updateDriveSignal(mDriveHelper.mecDrive(mControlBoard.getThrottleX(),
+                    mControlBoard.getThrottleY(), mControlBoard.getTwist()));
 
+            // Prioritize the button input and set/update the robot accordingly.
+            // Presently, these actions only happen *while* the button is pressed.
+            // When no drive-related button is pressed, the robot will default to OPEN_LOOP
             if (wants_aim_button) {
-                mDrive.handleAlignLaunch(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
+                if (mTeleopState != RobotControlState.WANTS_AIM) {
+                    mDrive.setAlignLaunch(timestamp);
+                    mTeleopState = RobotControlState.WANTS_AIM;
+                }
+                mDrive.updateAlignLaunch();
                 // @TODO: Add more launcher functionality.
-            } else if (!rotateLeftButton && !rotateRightButton) {
-                mDrive.setOpenLoop(mDriveHelper.mecDrive(xSpeed, ySpeed, twist));
+            } else if (rotateRightButton) {
+                if (mTeleopState != RobotControlState.HEADING_SETPOINT || mDrive.getTargetHeading() != -90) {
+                    mDrive.setTeleopHeadingSetpoint(-90, timestamp);
+                    mTeleopState = RobotControlState.HEADING_SETPOINT;
+                }
+                mDrive.updateTeleopHeadingSetpoint();
             } else if (rotateLeftButton) {
-                mDrive.setClosedLoopHeading(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), 90);
+                if (mTeleopState != RobotControlState.HEADING_SETPOINT || mDrive.getTargetHeading() != 90) {
+                    mDrive.setTeleopHeadingSetpoint(90, timestamp);
+                    mTeleopState = RobotControlState.HEADING_SETPOINT;
+                }
+                mDrive.updateTeleopHeadingSetpoint();
             } else {
-                mDrive.setClosedLoopHeading(mDriveHelper.mecDrive(xSpeed, ySpeed, twist), -90);
+                // No drive-related buttons have been pushed, so the default action is to drive OPEN_LOOP.
+                mDrive.setOpenLoop();
+                mTeleopState = RobotControlState.OPEN_LOOP;
             }
 
             /*
@@ -326,8 +341,8 @@ public class Robot extends IterativeRobot {
 
             // Call stop on all our Subsystems.
             mSubsystemManager.stop();
-
-            mDrive.setOpenLoop(DriveSignal.NEUTRAL);
+            mDrive.updateDriveSignal(DriveSignal.NEUTRAL);
+            mDrive.setOpenLoop();
 
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);

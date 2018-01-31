@@ -5,7 +5,7 @@ package com.team6133.frc2018.auto.actions;
  * by an autonomous action, called by the method runAction in AutoModeBase (or
  * more commonly in autonomous modes that extend AutoModeBase)
  *
- * @see com.team254.frc2017.auto.AutoModeBase#runAction
+ * @see com.team6133.frc2018.auto.AutoModeBase#runAction
  */
 public interface Action {
 

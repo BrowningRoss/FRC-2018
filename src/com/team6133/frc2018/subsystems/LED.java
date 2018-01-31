@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.DigitalOutput;
  * The main things this subsystem has to do is turn each LED on, off, or make it
  * blink.
  *
- * @see Subsystem.java
+ * @see Subsystem
  */
 public class LED extends Subsystem {
     public static final int kDefaultBlinkCount = 4;

@@ -3,13 +3,7 @@ package com.team6133.frc2018.loops;
 import com.team6133.frc2018.vision.VisionUpdate;
 import com.team6133.frc2018.vision.VisionUpdateReceiver;
 
-/**
- * This function adds vision updates (from the Nexus smartphone) to a list in RobotState. This helps keep track of goals
- * detected by the vision system. The code to determine the best goal to shoot at and prune old Goal tracks is in
- * GoalTracker.java
- *
- * @see GoalTracker.java
- */
+
 public class VisionProcessor implements Loop, VisionUpdateReceiver {
     static VisionProcessor instance_ = new VisionProcessor();
     VisionUpdate update_ = null;

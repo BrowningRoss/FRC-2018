@@ -40,10 +40,8 @@ public class VisionUpdate {
     /**
      * Generates a VisionUpdate object given a JSON blob and a timestamp.
      *
-     * @param Capture
-     *            timestamp
-     * @param JSON
-     *            blob with update string, example: { "capturedAgoMs" : 100, "targets": [{"y": 5.4, "z": 5.5}] }
+     * @param current_time The timestamp when this object was created.
+     * @param updateString A JSON blob with update string, example: { "capturedAgoMs" : 100, "targets": [{"y": 5.4, "z": 5.5}] }
      * @return VisionUpdate object
      */
     //

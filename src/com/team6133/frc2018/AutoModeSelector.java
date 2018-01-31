@@ -16,7 +16,7 @@ public class AutoModeSelector {
 
     public static final String AUTO_OPTIONS_DASHBOARD_KEY = "auto_options";
     public static final String SELECTED_AUTO_MODE_DASHBOARD_KEY = "selected_auto_mode";
-    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Center Gear then Shoot Red",
+    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Stand Still",
             () -> new StandStillMode());
     private static final AutoModeCreator[] mAllModes = {
             new AutoModeCreator("Standstill", () -> new StandStillMode()),};

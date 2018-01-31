@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.Joystick;
  * then other methods request the singleton GamepadControlBoard instance.
  * Implements the ControlBoardInterface.
  *
- * @see ControlBoardInterface.java
+ * @see ControlBoardInterface
  */
 public class GamepadControlBoard implements ControlBoardInterface {
 

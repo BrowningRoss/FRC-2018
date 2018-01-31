@@ -14,7 +14,6 @@ import com.team6133.lib.util.drivers.NavXmicro;
 import com.team6133.lib.util.math.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.command.PIDSubsystem;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -27,7 +26,7 @@ import java.util.Arrays;
  * and position control. The Drive subsystem also has several methods that
  * handle automatic aiming, autonomous path driving, and manual control.
  *
- * @see Subsystem.java
+ * @see Subsystem
  */
 public class Drive extends Subsystem {
 
@@ -41,6 +40,7 @@ public class Drive extends Subsystem {
     //???private final ReflectingCSVWriter<PathFollower.DebugOutput> mCSVWriter;
     // Control states
     private DriveControlState mDriveControlState;
+    private DriveSignal mDriveSignal;
     // These gains get reset below!!
     private Rotation2d mTargetHeading = new Rotation2d(Rotation2d.fromDegrees(0));
     // PID for heading control
@@ -57,7 +57,7 @@ public class Drive extends Subsystem {
         @Override
         public void onStart(double timestamp) {
             synchronized (Drive.this) {
-                setOpenLoop(DriveSignal.NEUTRAL);
+                setOpenLoop();
                 mNavXBoard.reset();
             }
             mCurrentStateStartTime = Timer.getFPGATimestamp();
@@ -99,16 +99,16 @@ public class Drive extends Subsystem {
     private Drive() {
         // Start all Talons in open loop mode.
         mFrontLeft = CANTalonFactory.createDefaultTalon(Constants.kFrontLeftDriveId);
-        mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
+        mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
 
         mFrontRight = CANTalonFactory.createDefaultTalon(Constants.kFrontRightDriveId);
-        mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
+        mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
 
         mRearLeft = CANTalonFactory.createDefaultTalon(Constants.kRearLeftDriveId);
-        mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
+        mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
 
         mRearRight = CANTalonFactory.createDefaultTalon(Constants.kRearRightDriveId);
-        mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 5, 10);
+        mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
 
         mPIDTwist.setInputRange(-180.0, 180.0);
         mPIDTwist.setOutputRange(-Constants.kTwistMaxOutput, Constants.kTwistMaxOutput);
@@ -120,17 +120,37 @@ public class Drive extends Subsystem {
         mPIDProxFront.setInputRange(0, 100); //@TODO: Determine the correct input range
 
 
-        // Path Following stuff
+        // NavXmicro using I2C on the RoboRIO (NOT using the MXP slot)
         mNavXBoard = new NavXmicro(I2C.Port.kOnboard);
 
         // Initialize the Mecanum Drive
         mMecanumDrive = new MecanumDrive(mFrontLeft, mRearLeft, mFrontRight, mRearRight);
-        setOpenLoop(DriveSignal.NEUTRAL);
+        mDriveSignal = DriveSignal.NEUTRAL;
+        setOpenLoop();
 
     }
 
+    /**
+     * Get the static instance of the Drive class
+     * @return mInstance - the static instance of this class.
+     */
     public static Drive getInstance() {
         return mInstance;
+    }
+
+    /**
+     * Retrieves the current drive signal (joystick) values.
+     * @return mDriveSignal - the most current values read from the joystick.
+     */
+    public DriveSignal getDriveSignal() { return mDriveSignal;}
+
+    /**
+     * Update the values of the drive signal.  Call this at the start of the teleop periodic loop.
+     * @param signal The joystick drive signal.  Best practice is to apply deadband to the signal before passing it here.
+     * @see com.team6133.lib.util.DriveHelper#mecDrive(double, double, double)
+     */
+    public synchronized void updateDriveSignal(DriveSignal signal) {
+        mDriveSignal = signal;
     }
 
     @Override
@@ -140,53 +160,62 @@ public class Drive extends Subsystem {
 
     /**
      * Open loop control of the robot.
-     * @param signal - the joystick drive signal
+     * Call updateDriveSignal at the start of the teleop periodic loop.
+     * This method relies on the mDriveSignal being updated in this way.
      */
-    public synchronized void setOpenLoop(DriveSignal signal) {
+    public synchronized void setOpenLoop() {
         if (mDriveControlState != DriveControlState.OPEN_LOOP) {
             mDriveControlState = DriveControlState.OPEN_LOOP;
             System.out.println("Starting open loop control.");
-            mCurrentStateStartTime = Timer.getFPGATimestamp();
             mPIDTwist.reset();
             mPIDProxFront.reset();
         }
         try {
-            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist(), getGyroAngle().getDegrees());
+            mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mDriveSignal.getTwist(), getGyroAngle().getDegrees());
         } catch (Throwable t) {
-            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist());
+            mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mDriveSignal.getTwist());
             throw t;
         }
     }
 
     /**
-     * Enables PID Heading Control.  The driver can still operate in the x & y directions, but this function
-     * overrides the twist such that the robot strictly faces left or right.
-     * Used for aiming.
-     * @param signal - the joystick drive signal
-     * @param heading - the PID setpoint
+     * Enable the Heading Setpoint mode in teleop. Specify the heading and the method will prep the PID Controller.
+     * The Drive State will change to HEADING_SETPOINT.
+     * Call this method once in teleop periodic to initialize the mode, but then call updateTeleopHeadingSetpoint()
+     * to allow the driver to update the drive signal.
+     * @param heading Target heading to use with gyro. Input ranges from -180 to 180.
+     * @param timeStamp The system start time that this method was called.
      */
-
-    public synchronized void setClosedLoopHeading( DriveSignal signal, double heading) {
-        mTargetHeading = Rotation2d.fromDegrees(heading);
-        if (mPIDTwist.getSetpoint() != mTargetHeading.getDegrees()) {
-            mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
+    public synchronized void setTeleopHeadingSetpoint(double heading, double timeStamp) {
+        Rotation2d heading_ = Rotation2d.fromDegrees(heading);
+        if (Math.abs(heading_.inverse().rotateBy(mTargetHeading).getDegrees()) > 1E-3) {
+            mTargetHeading = heading_;
+            mIsOnTarget = false;
         }
         if (mDriveControlState != DriveControlState.HEADING_SETPOINT) {
             mDriveControlState = DriveControlState.HEADING_SETPOINT;
-            mCurrentStateStartTime = Timer.getFPGATimestamp();
+            mTimeInState = 0.0;
             mPIDTwist.resetIntegrator();
             System.out.println("Starting closed loop control with heading = " + heading);
         }
+        mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
+        mCurrentStateStartTime = timeStamp;
+    }
 
+    /**
+     * Updates the PID Heading Control.  The driver can still operate in the x and y directions, but this function
+     * overrides the twist such that the robot strictly faces left or right.
+     * Useful for aiming the robot at a switch or scale.
+     */
+    public void updateTeleopHeadingSetpoint() {
         //---double dx = mTargetHeading.getDegrees() - getGyroAngle().getDegrees();
         //---double kP = 0.0175;
         //---double pidTwist = DriveHelper.throttleTwist(kP * dx);
 
         try {
-
-            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+            mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
         } catch (Throwable t) {
-            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), signal.getTwist());
+            mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mDriveSignal.getTwist());
             throw t;
         }
     }
@@ -195,9 +224,9 @@ public class Drive extends Subsystem {
      * PID Control loop for aligning the drive for shooting.
      * The robot will automatically face left or right (depending on the location of the scale).
      * After a small delay, the robot will also use the proximity sensor to adjust to the GUARD RAIL.
-     * @param signal - the joystick drive signal
+     * @param timeStamp The system timestamp when this method was called.
      */
-    public synchronized void handleAlignLaunch(DriveSignal signal) {
+    public synchronized void setAlignLaunch(double timeStamp) {
         if (mDriveControlState != DriveControlState.LAUNCH_SETPOINT) {
             mPIDProxFront.resetIntegrator();
             mPIDTwist.resetIntegrator();
@@ -209,27 +238,45 @@ public class Drive extends Subsystem {
             mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
             mPIDProxFront.setSetpoint(Constants.kLaunchProxSetpoint);
             mDriveControlState = DriveControlState.LAUNCH_SETPOINT;
-            mCurrentStateStartTime = Timer.getFPGATimestamp();
+            mCurrentStateStartTime = timeStamp;
+            mTimeInState = 0.0;
             System.out.println("Aligning drive for " + Constants.kGameSpecificMessage.charAt(1) + " scale shot.");
         }
-        if (mTimeInState > mThresholdTime) {
-            mMecanumDrive.driveCartesian(mPIDProxFront.get(), signal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
-        } else {
-            mMecanumDrive.driveCartesian(signal.getX(), signal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+    }
+
+    /**
+     * Uses PID sensors to fix the angle w.r.t the scale and the distance w.r.t the GUARD RAIL.
+     * There is a small delay before the proximity sensor is used.  This is to compensate for the amount of time it
+     * takes to orient the sensor facing the GUARD RAIL.
+     * Call this method in teleop periodic after the initial call to setAlignLaunch()
+     * @see Drive#setAlignLaunch(double)
+     */
+    public void updateAlignLaunch() {
+        try {
+            if (mTimeInState > mThresholdTime) {
+                mMecanumDrive.driveCartesian(mPIDProxFront.get(), mDriveSignal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+            } else {
+                mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+            }
+        } catch (Throwable t) {
+            mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mDriveSignal.getTwist());
+            throw t;
         }
     }
 
     /**
      * Configure the robot for Polar Drive.  Not likely to be used, but written for testing purposes.
-     * @param signal - the joystick drive signal
+     * @param heading The target heading.  Input ranges from -180 to 180.
+     * @param timeStamp The system time that this method was called.
      */
-    public synchronized void setPolarDrive(DriveSignal signal) {
+    public synchronized void setPolarDrive(double heading, double timeStamp) {
         if (mDriveControlState != DriveControlState.POLAR_DRIVE) {
             mDriveControlState = DriveControlState.POLAR_DRIVE;
-            mCurrentStateStartTime = Timer.getFPGATimestamp();
+            mCurrentStateStartTime = timeStamp;
+            mTimeInState = 0.0;
         }
         try {
-            mMecanumDrive.drivePolar(signal.getY(), getGyroAngle().getDegrees(), signal.getTwist());
+            mMecanumDrive.drivePolar(mDriveSignal.getY(), heading, mDriveSignal.getTwist());
         } catch (Throwable t) {
             throw t;
         }
@@ -237,7 +284,8 @@ public class Drive extends Subsystem {
 
     @Override
     public synchronized void stop() {
-        setOpenLoop(DriveSignal.NEUTRAL);
+        mDriveSignal = DriveSignal.NEUTRAL;
+        setOpenLoop();
     }
 
     @Override
@@ -271,6 +319,10 @@ public class Drive extends Subsystem {
 
     public synchronized double getGyroVelocityDegreesPerSec() {
         return mNavXBoard.getYawRateDegreesPerSec();
+    }
+
+    public synchronized double getTargetHeading() {
+        return mTargetHeading.getDegrees();
     }
 
 

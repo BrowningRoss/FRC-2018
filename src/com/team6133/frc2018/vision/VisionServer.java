@@ -1,12 +1,11 @@
 package com.team6133.frc2018.vision;
 
-import edu.wpi.first.wpilibj.Timer;
-
 import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.vision.messages.HeartbeatMessage;
 import com.team6133.frc2018.vision.messages.OffWireMessage;
 import com.team6133.frc2018.vision.messages.VisionMessage;
 import com.team6133.lib.util.CrashTrackingRunnable;
+import edu.wpi.first.wpilibj.Timer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +21,7 @@ import java.util.Collections;
  * the VisionUpdate list. Much like the subsystems, outside methods get the VisionServer instance (there is only one
  * VisionServer) instead of creating new VisionServer instances.
  *
- * @see VisionUpdate.java
+ * @see VisionUpdate
  */
 
 public class VisionServer extends CrashTrackingRunnable {
