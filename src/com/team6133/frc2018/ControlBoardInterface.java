@@ -17,25 +17,30 @@ public interface ControlBoardInterface {
 
     boolean getRotateRightButton();
 
-    boolean getFeedButton();
+    boolean getIntakeFloorButton();
 
-    boolean getIntakeButton();
+    boolean getIntakeStackButton();
 
-    boolean getShooterOpenLoopButton();
+    boolean getSpoolShooterButton();
 
-    boolean getExhaustButton();
+    boolean getExhaustExchangeButton();
+
+    boolean getExhaustSwitchButton();
 
     boolean getUnjamButton();
 
     boolean getWantsLaunchButton();
 
-    boolean getFlywheelSwitch();
+    boolean getLoadLauncherButton();
 
-    boolean getHangButton();
+    boolean getExtendClimbButton();
+
+    boolean getRetractClimbButton();
+
+    boolean getClimbButton();
 
     boolean getBlinkLEDButton();
 
-    boolean getRangeFinderButton();
+    boolean getWantsCubeIntakeButton();
 
-    boolean getWantGearDriveLimit();
 }

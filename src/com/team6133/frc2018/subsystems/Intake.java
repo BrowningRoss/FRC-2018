@@ -105,7 +105,7 @@ public class Intake extends Subsystem {
         mSystemState = SystemState.STOWED;
     }
 
-    public SystemState handleFloorIntake(double timeInState) {
+    private SystemState handleFloorIntake(double timeInState) {
         switch (mWantedState) {
             case HOLDING:
                 mThresholdStart = Double.POSITIVE_INFINITY;
@@ -132,7 +132,7 @@ public class Intake extends Subsystem {
         }
     }
 
-    public SystemState handleStackIntake(double timeInState) {
+    private SystemState handleStackIntake(double timeInState) {
         switch (mWantedState) {
             case HOLDING:
                 mThresholdStart = Double.POSITIVE_INFINITY;
@@ -294,7 +294,7 @@ public class Intake extends Subsystem {
         }
     }
 
-    public SystemState handleStowing(double timeInState) {
+    private SystemState handleStowing(double timeInState) {
         mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
 
         if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
@@ -314,7 +314,7 @@ public class Intake extends Subsystem {
         return SystemState.STOWING;
     }
 
-    public SystemState handleStowed(double timeInState) {
+    private SystemState handleStowed(double timeInState) {
         switch(mWantedState) {
             case ACQUIRE_FLOOR:
                 mThresholdStart = Double.POSITIVE_INFINITY;

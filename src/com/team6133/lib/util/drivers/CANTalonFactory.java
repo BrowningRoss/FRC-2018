@@ -48,7 +48,9 @@ public class CANTalonFactory {
         talon.enableCurrentLimit(config.ENABLE_CURRENT_LIMIT);
         talon.setNeutralMode(config.BRAKE_OR_COAST);
         talon.setSensorPhase(false);
-        talon.configContinuousCurrentLimit(config.CURRENT_LIMIT, config.TIMEOUT_MS);
+        talon.configContinuousCurrentLimit(config.CONTINUOUS_CURRENT_LIMIT, config.TIMEOUT_MS);
+        talon.configPeakCurrentLimit(config.PEAK_CURRENT_LIMIT, config.TIMEOUT_MS);
+        talon.configPeakCurrentDuration(config.PEAK_CURRENT_TIMEOUT_MS, config.TIMEOUT_MS);
         talon.setExpiration(config.EXPIRATION_TIMEOUT_SECONDS);
         talon.configForwardSoftLimitThreshold(config.FORWARD_SOFT_LIMIT, config.TIMEOUT_MS);
         talon.setInverted(config.INVERTED);
@@ -73,6 +75,9 @@ public class CANTalonFactory {
         return talon;
     }
 
+    /**
+     * Configuration class that manages all of the default configurations for the Talon SRX.
+     */
     public static class Configuration {
         public LimitSwitchNormal FORWARD_LIMIT_SWITCH_NORMALLY_OPEN = LimitSwitchNormal.Disabled;
         public LimitSwitchSource FORWARDLIMIT_SWITCH_TYPE = LimitSwitchSource.Deactivated;
@@ -85,7 +90,9 @@ public class CANTalonFactory {
         public boolean ENABLE_CURRENT_LIMIT = false;
         public boolean ENABLE_FORWARD_SOFT_LIMIT = false;
         public boolean ENABLE_REVERSE_SOFT_LIMIT = false;
-        public int CURRENT_LIMIT = 0;
+        public int CONTINUOUS_CURRENT_LIMIT = 0;
+        public int PEAK_CURRENT_LIMIT = 0;
+        public int PEAK_CURRENT_TIMEOUT_MS = 613;
         public double EXPIRATION_TIMEOUT_SECONDS = MotorSafety.DEFAULT_SAFETY_EXPIRATION;
         public int FORWARD_SOFT_LIMIT = 0;
         public boolean INVERTED = false;
@@ -109,7 +116,7 @@ public class CANTalonFactory {
         public double CLOSED_LOOP_RAMP_RATE = 0;
     }
 
-    /**
+    /*
      * Run this on a fresh talon to produce good values for the defaults.
 
      public static String getFullTalonInfo(WPI_TalonSRX talon) {

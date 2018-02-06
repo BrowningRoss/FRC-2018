@@ -59,23 +59,28 @@ public class ControlBoard implements ControlBoardInterface {
     }
 
     @Override
-    public boolean getFeedButton() {
-        return mButtonBoard.getRawAxis(1) < -0.1;
-    }
-
-    @Override
-    public boolean getIntakeButton() {
+    public boolean getIntakeStackButton() {
         return mButtonBoard.getRawAxis(2) < -0.1;
     }
 
     @Override
-    public boolean getShooterOpenLoopButton() {
+    public boolean getIntakeFloorButton() {
+        return mButtonBoard.getRawAxis(3) < -0.1;
+    }
+
+    @Override
+    public boolean getSpoolShooterButton() {
         return false;
     }
 
     @Override
-    public boolean getExhaustButton() {
-        return mButtonBoard.getRawAxis(0) < -0.1;
+    public boolean getExhaustExchangeButton() {
+        return false;
+    }
+
+    @Override
+    public boolean getExhaustSwitchButton() {
+        return false;
     }
 
     @Override
@@ -89,25 +94,23 @@ public class ControlBoard implements ControlBoardInterface {
     }
 
     @Override
-    public boolean getFlywheelSwitch() {
-        return mButtonBoard.getRawAxis(3) < -0.1;
+    public boolean getLoadLauncherButton() {
+        return false;
     }
 
     @Override
-    public boolean getHangButton() {
-        return mButtonBoard.getRawButton(10);
+    public boolean getExtendClimbButton() {
+        return false;
     }
 
-    public boolean getGrabGearButton() {
-        return mButtonBoard.getRawButton(2);
+    @Override
+    public boolean getRetractClimbButton() {
+        return false;
     }
 
-    public boolean getScoreGearButton() {
-        return mButtonBoard.getRawButton(1);
-    }
-
-    public boolean getActuateHopperButton() {
-        return mButtonBoard.getRawButton(3);
+    @Override
+    public boolean getClimbButton() {
+        return false;
     }
 
     @Override
@@ -116,12 +119,7 @@ public class ControlBoard implements ControlBoardInterface {
     }
 
     @Override
-    public boolean getRangeFinderButton() {
-        return mButtonBoard.getRawButton(7);
-    }
-
-    @Override
-    public boolean getWantGearDriveLimit() {
-        return mButtonBoard.getRawButton(12);
+    public boolean getWantsCubeIntakeButton() {
+        return false;
     }
 }

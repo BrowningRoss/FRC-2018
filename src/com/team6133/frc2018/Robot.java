@@ -72,13 +72,23 @@ public class Robot extends IterativeRobot {
         mDrive.zeroSensors();
     }
 
-    private enum RobotControlState {
+    private enum RobotDriveState {
         OPEN_LOOP,
         HEADING_SETPOINT,
         WANTS_AIM,
     }
 
-    private RobotControlState mTeleopState;
+    private enum RobotCubeState {
+        INTAKE_FLOOR,
+        INTAKE_STACK,
+        EXHAUST_EXCHANGE,
+        EXHAUST_SWITCH,
+        LOAD_SHOOTER,
+        HOLDING,
+    }
+
+    private RobotDriveState mDriveState;
+    private RobotCubeState mCubeState;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -101,6 +111,7 @@ public class Robot extends IterativeRobot {
             throw t;
         }
         zeroAllSensors();
+        mCubeState = RobotCubeState.HOLDING;
     }
 
     /**
@@ -163,7 +174,7 @@ public class Robot extends IterativeRobot {
     public void teleopInit() {
         try {
             CrashTracker.logTeleopInit();
-            mTeleopState = RobotControlState.OPEN_LOOP;
+            mDriveState = RobotDriveState.OPEN_LOOP;
             // Start loopers
             mEnabledLooper.start();
             mDrive.setOpenLoop();
@@ -190,9 +201,19 @@ public class Robot extends IterativeRobot {
         try {
             double timestamp = Timer.getFPGATimestamp();
             // Get Buttons
-            boolean rotateLeftButton = mControlBoard.getRotateLeftButton();
-            boolean rotateRightButton = mControlBoard.getRotateRightButton();
-            boolean wants_aim_button = mControlBoard.getWantsLaunchButton();
+            boolean rotateLeftButton    = mControlBoard.getRotateLeftButton();
+            boolean rotateRightButton   = mControlBoard.getRotateRightButton();
+            boolean wants_aim_button    = mControlBoard.getWantsLaunchButton();
+            boolean intakeFloor         = mControlBoard.getIntakeFloorButton();
+            boolean intakeStack         = mControlBoard.getIntakeStackButton();
+            boolean spoolShooter        = mControlBoard.getSpoolShooterButton();
+            boolean exhaustExchange     = mControlBoard.getExhaustExchangeButton();
+            boolean exhaustSwitch       = mControlBoard.getExhaustSwitchButton();
+            boolean loadLauncher        = mControlBoard.getLoadLauncherButton();
+            boolean extendClimber       = mControlBoard.getExtendClimbButton();
+            boolean retractClimber      = mControlBoard.getRetractClimbButton();
+            boolean climb               = mControlBoard.getClimbButton();
+            boolean wantsCube           = mControlBoard.getWantsCubeIntakeButton();
 
             // Get the joystick signals and send the modified DriveSignal to the Drive class.
             // This MUST be done before calling any of the other Drive methods.
@@ -203,123 +224,65 @@ public class Robot extends IterativeRobot {
             // Presently, these actions only happen *while* the button is pressed.
             // When no drive-related button is pressed, the robot will default to OPEN_LOOP
             if (wants_aim_button) {
-                if (mTeleopState != RobotControlState.WANTS_AIM) {
+                if (mDriveState != RobotDriveState.WANTS_AIM) {
                     mDrive.setAlignLaunch(timestamp);
-                    mTeleopState = RobotControlState.WANTS_AIM;
+                    mDriveState = RobotDriveState.WANTS_AIM;
+                    Timer.delay(.005);
                 }
                 mDrive.updateAlignLaunch();
                 // @TODO: Add more launcher functionality.
             } else if (rotateRightButton) {
-                if (mTeleopState != RobotControlState.HEADING_SETPOINT || mDrive.getTargetHeading() != -90) {
+                if (mDriveState != RobotDriveState.HEADING_SETPOINT || mDrive.getTargetHeading() != -90) {
                     mDrive.setTeleopHeadingSetpoint(-90, timestamp);
-                    mTeleopState = RobotControlState.HEADING_SETPOINT;
+                    mDriveState = RobotDriveState.HEADING_SETPOINT;
+                    Timer.delay(.005);
                 }
                 mDrive.updateTeleopHeadingSetpoint();
             } else if (rotateLeftButton) {
-                if (mTeleopState != RobotControlState.HEADING_SETPOINT || mDrive.getTargetHeading() != 90) {
+                if (mDriveState != RobotDriveState.HEADING_SETPOINT || mDrive.getTargetHeading() != 90) {
                     mDrive.setTeleopHeadingSetpoint(90, timestamp);
-                    mTeleopState = RobotControlState.HEADING_SETPOINT;
+                    mDriveState = RobotDriveState.HEADING_SETPOINT;
+                    Timer.delay(.005);
                 }
                 mDrive.updateTeleopHeadingSetpoint();
             } else {
                 // No drive-related buttons have been pushed, so the default action is to drive OPEN_LOOP.
                 mDrive.setOpenLoop();
-                mTeleopState = RobotControlState.OPEN_LOOP;
+                mDriveState = RobotDriveState.OPEN_LOOP;
             }
 
-            /*
-             * ~!@ if (wants_aim_button || mControlBoard.getDriveAimButton()) {
-             *
-             * if (Constants.kIsShooterTuning) { mDrive.setWantAimToGoal(); }
-             * else if (mControlBoard.getDriveAimButton()) {
-             * mDrive.setWantDriveTowardsGoal(); } else {
-             * mDrive.setWantAimToGoal(); }
-             *
-             * if ((mControlBoard.getDriveAimButton() &&
-             * !mDrive.isApproaching()) || !mControlBoard.getDriveAimButton()) {
-             * if (mControlBoard.getUnjamButton()) {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.
-             * UNJAM_SHOOT); } else {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.SHOOT);
-             * } } else {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.
-             * RANGE_FINDING); }
-             *
-             * } else {
-             *
-             * // Make sure not to interrupt shooting spindown. if
-             * (!mSuperstructure.isShooting()) {
-             * mDrive.setOpenLoop(mDriveHelper.cheesyDrive(throttle, turn,
-             * mControlBoard.getQuickTurn(), !mControlBoard.getLowGear()));
-             * boolean wantLowGear = mControlBoard.getLowGear();
-             * mDrive.setHighGear(!wantLowGear); }
-             *
-             * Intake.getInstance().setCurrentThrottle(mControlBoard.getThrottle
-             * ());
-             *
-             * boolean wantsExhaust = mControlBoard.getExhaustButton();
-             *
-             * if (Constants.kIsShooterTuning) {
-             * mLED.setWantedState(LED.WantedState.FIND_RANGE); if
-             * (mCommitTuning.update(mControlBoard.getLowGear())) { // Commit to
-             * TuningMap. double rpm = mSuperstructure.getCurrentTuningRpm();
-             * double range = mSuperstructure.getCurrentRange();
-             * System.out.println("Tuning range: " + range + " = " + rpm);
-             * mTuningFlywheelMap.put(new InterpolatingDouble(range), new
-             * InterpolatingDouble(rpm)); mSuperstructure.incrementTuningRpm();
-             * } }
-             *
-             * // Exhaust has highest priority for intake. if (wantsExhaust) {
-             * mSuperstructure.setWantIntakeReversed(); } else if
-             * (mControlBoard.getIntakeButton()) {
-             * mSuperstructure.setWantIntakeOn(); } else if
-             * (!mSuperstructure.isShooting()) {
-             * mSuperstructure.setWantIntakeStopped(); }
-             *
-             * // Hanging has highest priority for feeder, followed by
-             * exhausting, unjamming, and finally // feeding. if
-             * (mControlBoard.getHangButton()) {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.HANG);
-             * } else if (wantsExhaust) {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.EXHAUST
-             * ); } else if (mControlBoard.getUnjamButton()) {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.UNJAM);
-             * } else if (mControlBoard.getFeedButton()) {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.
-             * MANUAL_FEED); } else if (mControlBoard.getRangeFinderButton()) {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.
-             * RANGE_FINDING); } else {
-             * mSuperstructure.setWantedState(Superstructure.WantedState.IDLE);
-             * }
-             *
-             * if (mControlBoard.getFlywheelSwitch()) {
-             * mSuperstructure.setClosedLoopRpm(Constants.kDefaultShootingRPM);
-             * } else if (mControlBoard.getShooterOpenLoopButton()) {
-             * mSuperstructure.setShooterOpenLoop(0); } else if
-             * (mControlBoard.getShooterClosedLoopButton()) {
-             * mSuperstructure.setClosedLoopRpm(Constants.kDefaultShootingRPM);
-             * } else if (!mControlBoard.getHangButton() &&
-             * !mControlBoard.getRangeFinderButton() &&
-             * !mSuperstructure.isShooting()) {
-             * mSuperstructure.setShooterOpenLoop(0); }
-             *
-             * if (mControlBoard.getBlinkLEDButton()) {
-             * mLED.setWantedState(LED.WantedState.BLINK); }
-             *
-             * }
-             */
-            // boolean grab_gear = mControlBoard.getGrabGearButton();
-            /*
-             * ~!@ if (score_gear && grab_gear) {
-             * mGearGrabber.setWantedState(WantedState.CLEAR_BALLS); } else if
-             * (score_gear) { mGearGrabber.setWantedState(WantedState.SCORE); }
-             * else if (grab_gear) {
-             * mGearGrabber.setWantedState(WantedState.ACQUIRE); } else {
-             * mGearGrabber.setWantedState(WantedState.IDLE); } DELETE THE BELOW
-             * IF
-             */
+            if (intakeFloor) {
+                if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
+                    mCubeState = RobotCubeState.INTAKE_FLOOR;
+                }
+                mIntake.setWantedState(Intake.WantedState.ACQUIRE_FLOOR);
+                System.out.println(Constants.kGameSpecificMessage);
+            } else if (intakeStack) {
+                if (mCubeState != RobotCubeState.INTAKE_STACK) {
+                    mCubeState = RobotCubeState.INTAKE_STACK;
+                }
+                mIntake.setWantedState(Intake.WantedState.ACQUIRE_STACK);
+            } else if (exhaustExchange) {
+                if (mCubeState != RobotCubeState.EXHAUST_EXCHANGE) {
+                    mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
+                }
+                mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
+            } else if (exhaustSwitch) {
+                if (mCubeState != RobotCubeState.EXHAUST_SWITCH) {
+                    mCubeState = RobotCubeState.EXHAUST_SWITCH;
+                }
+                mIntake.setWantedState(Intake.WantedState.SCORE_SWITCH);
+            } else if (loadLauncher) {
+                if (mCubeState != RobotCubeState.LOAD_SHOOTER) {
+                    mCubeState = RobotCubeState.LOAD_SHOOTER;
+                }
+                mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
+            }
+            else {
+                mIntake.setWantedState(Intake.WantedState.HOLDING);
+                mCubeState = RobotCubeState.HOLDING;
+            }
 
-            // ~!@mSuperstructure.setActuateHopper(mControlBoard.getActuateHopperButton());
             allPeriodic();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -352,28 +315,32 @@ public class Robot extends IterativeRobot {
 
     @Override
     public void disabledPeriodic() {
-        /*
+        /* add this if we get a LED controller.
          * final double kVoltageThreshold = 0.15; if
          * (mCheckLightButton.getAverageVoltage() < kVoltageThreshold) {
          * mLED.setLEDOn(); } else { mLED.setLEDOff(); }
          */
         zeroAllSensors();
         allPeriodic();
+
+        // If we are connected to the FMS, then let's check every 5ms for the message.
         if ( DriverStation.getInstance().isFMSAttached() ) {
             if ( Constants.kGameSpecificMessage.length() != 3) {
                 Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
                 Timer.delay(0.005);
             }
-        } else {
+        } else {    // We are not connected to the FMS, so randomly generate the message.
             if ( Constants.kGameSpecificMessage.length() != 4) {
                 Constants.kGameSpecificMessage = Constants.kMyGameMessages[ThreadLocalRandom.current().nextInt(0,8)];
             }
         }
+        // Update the constant for knowing our Alliance Color (used mostly for Auton)
         if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Blue) {
             Constants.kAllianceColor = "Blue";
         } else {
             Constants.kAllianceColor = "Red";
         }
+        // Display the game specific message on the REV Digit Board (connected to the MXP).
         mRevDigitBoard.display(Constants.kGameSpecificMessage);
 
     }
