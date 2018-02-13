@@ -1,6 +1,7 @@
 package com.team6133.frc2018;
 
 import com.team6133.lib.util.ConstantsBase;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Solenoid;
 
 import java.net.NetworkInterface;
@@ -27,7 +28,7 @@ public class Constants extends ConstantsBase {
         kMyGameMessages[7] = "RRRX";
     }
 
-
+    /* Talon SRX CAN ID's */
     // Drive
     public static final int kFrontLeftDriveId   = 7;
     public static final int kRearLeftDriveId    = 6;
@@ -36,8 +37,29 @@ public class Constants extends ConstantsBase {
 
     // Intake
     public static final int kIntakeArmId        = 5;
-    public static final int kIntakeLeftWheelId  = 2;
-    public static final int kIntakeRightWheelId = 3;
+
+    // Launcher
+    public static final int kLauncherMasterId   = 2;
+    public static final int kLauncherSlaveId    = 3;
+
+    // PWM Slots
+    public static final int kRevAirSensorPWM    = 0;
+    public static final int kIntakeLeftPWM      = 1;
+    public static final int kIntakeRightPWM     = 2;
+    public static final int kLauncherLeftPWM    = 3;
+    public static final int kLauncherRightPWM   = 4;
+    public static final int kClimbPulleyPWM     = 5;
+    public static final int kClimbWinchPWM      = 6;
+
+    // Solenoid IDs
+    public static final int kLauncherSolenoidId = 0;    // PCM 0, Forward Channel 0, Reverse Channel 1
+    public static final int kArmLeftSolenoidId  = 2;    // PCM 0, Forward Channel 2, Reverse Channel 3
+    public static final int kArmRightSolenoidId = 4;    // PCM 0, Forward Channel 4, Reverse Channel 5
+
+    // Launcher RPM Tuning
+    public static final double kLauncherRPM = 6133; // @TODO: Determine actual RPM
+    public static final double kLauncherCoolDownTime = 1.0; // 1 Second to spool down after launch
+    public static final double kLaunchTimeThreshold = 1.0; // 1 second to launch
 
 
     /* ROBOT PHYSICAL CONSTANTS */
@@ -53,6 +75,12 @@ public class Constants extends ConstantsBase {
     public static double kCenterToIntakeDistance;
     public static double kCenterToRearBumperDistance;
     public static double kCenterToSideBumperDistance;
+
+    // Analog Input Ports
+    public static final int kIRPDFrontPort = 1;
+    public static final int kIRPDLeftPort  = 2;
+    public static final int kIRPDRightPort = 3;
+
     /* CONTROL LOOP GAINS */
     // PID gains for drive Heading Setpoint loop
     public static final double kDriveTwistKp = 0.0175;
@@ -64,6 +92,16 @@ public class Constants extends ConstantsBase {
     public static final double kDriveProxKi  = 0.001;
     public static final double kDriveProxKd  = 0.030;
     public static final double kDriveProxKf  = 0;
+    // PID gains for Launcher RPM Setpoint loop
+    public static final double kLauncherKp   = 0.01;
+    public static final double kLauncherKi   = 0.001;
+    public static final double kLauncherKd   = 0.02;
+    public static final double kLauncherKf   = 0;
+    // PID gains for the Intake Arm Setpoint loop
+    public static final double kIntakeKp     = 0.01;
+    public static final double kIntakeKi     = 0.001;
+    public static final double kIntakeKd     = 0.02;
+    public static final double kIntakeKf     = 0;
 
     public static final double kLaunchProxSetpoint = 0.0000;    // @TODO: Determine the correct setpoint.
 
@@ -109,13 +147,23 @@ public class Constants extends ConstantsBase {
 
 
     /**
-     * Make an {@link Solenoid} instance for the single-number ID of the
+     * Make a {@link Solenoid} instance for the single-number ID of the
      * solenoid
      *
      * @param solenoidId One of the kXyzSolenoidId constants
      */
     public static Solenoid makeSolenoidForId(int solenoidId) {
         return new Solenoid(solenoidId / 8, solenoidId % 8);
+    }
+
+    /**
+     * Make a {@link DoubleSolenoid} instance for the single-number ID of the
+     * solenoid
+     *
+     * @param solenoidId One of the kXyzSolenoidId constants
+     */
+    public static DoubleSolenoid makeDoubleSolenoidForId(int solenoidId) {
+        return new DoubleSolenoid(solenoidId / 8, solenoidId % 8, (solenoidId + 1) % 8);
     }
 
     /**

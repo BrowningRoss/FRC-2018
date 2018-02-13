@@ -2,9 +2,7 @@ package com.team6133.frc2018;
 
 import com.team6133.frc2018.auto.AutoModeExecuter;
 import com.team6133.frc2018.loops.Looper;
-import com.team6133.frc2018.subsystems.ConnectionMonitor;
-import com.team6133.frc2018.subsystems.Drive;
-import com.team6133.frc2018.subsystems.Intake;
+import com.team6133.frc2018.subsystems.*;
 import com.team6133.lib.util.CrashTracker;
 import com.team6133.lib.util.DriveHelper;
 import com.team6133.lib.util.DriveSignal;
@@ -39,8 +37,7 @@ public class Robot extends IterativeRobot {
     // Create subsystem manager
     private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(Drive.getInstance(),
             Intake.getInstance(),
-            // ~!@Superstructure.getInstance(), Shooter.getInstance(),
-            // Feeder.getInstance(), Hopper.getInstance(), Intake.getInstance(),
+            Launcher.getInstance(), Climber.getInstance(),
             ConnectionMonitor.getInstance()// , LED.getInstance(),
     ));
     // Get subsystem instances
@@ -89,6 +86,16 @@ public class Robot extends IterativeRobot {
 
     private RobotDriveState mDriveState;
     private RobotCubeState mCubeState;
+    private boolean _intakeFloor         = false;
+    private boolean _intakeStack         = false;
+    private boolean _spoolShooter        = false;
+    private boolean _exhaustExchange     = false;
+    private boolean _exhaustSwitch       = false;
+    private boolean _loadLauncher        = false;
+    private boolean _extendClimber       = false;
+    private boolean _retractClimber      = false;
+    private boolean _climb               = false;
+    private boolean _wantsCube           = false;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -214,6 +221,7 @@ public class Robot extends IterativeRobot {
             boolean retractClimber      = mControlBoard.getRetractClimbButton();
             boolean climb               = mControlBoard.getClimbButton();
             boolean wantsCube           = mControlBoard.getWantsCubeIntakeButton();
+            boolean wantsExhaust        = false;
 
             // Get the joystick signals and send the modified DriveSignal to the Drive class.
             // This MUST be done before calling any of the other Drive methods.
@@ -247,43 +255,116 @@ public class Robot extends IterativeRobot {
                 mDrive.updateTeleopHeadingSetpoint();
             } else {
                 // No drive-related buttons have been pushed, so the default action is to drive OPEN_LOOP.
-                mDrive.setOpenLoop();
-                mDriveState = RobotDriveState.OPEN_LOOP;
+                if (!wantsCube) {
+                    mDrive.setOpenLoop();
+                    mDriveState = RobotDriveState.OPEN_LOOP;
+                }
             }
 
-            if (intakeFloor) {
+            if (intakeFloor && !_intakeFloor) {
                 if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
                     mCubeState = RobotCubeState.INTAKE_FLOOR;
+                    if (mIntake.hasCube())
+                        mIntake.overrideHasCube();
+                } else {
+                    mCubeState = RobotCubeState.HOLDING;
                 }
-                mIntake.setWantedState(Intake.WantedState.ACQUIRE_FLOOR);
-                System.out.println(Constants.kGameSpecificMessage);
-            } else if (intakeStack) {
+            } else if (intakeStack && !_intakeStack) {
                 if (mCubeState != RobotCubeState.INTAKE_STACK) {
                     mCubeState = RobotCubeState.INTAKE_STACK;
+                    if (mIntake.hasCube())
+                        mIntake.overrideHasCube();
+                } else {
+                    mCubeState = RobotCubeState.HOLDING;
                 }
-                mIntake.setWantedState(Intake.WantedState.ACQUIRE_STACK);
-            } else if (exhaustExchange) {
-                if (mCubeState != RobotCubeState.EXHAUST_EXCHANGE) {
-                    mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
-                }
-                mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
-            } else if (exhaustSwitch) {
-                if (mCubeState != RobotCubeState.EXHAUST_SWITCH) {
-                    mCubeState = RobotCubeState.EXHAUST_SWITCH;
-                }
-                mIntake.setWantedState(Intake.WantedState.SCORE_SWITCH);
-            } else if (loadLauncher) {
-                if (mCubeState != RobotCubeState.LOAD_SHOOTER) {
-                    mCubeState = RobotCubeState.LOAD_SHOOTER;
-                }
-                mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
+            } else if (exhaustExchange && !_exhaustExchange) {
+                mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
+                if (!mIntake.hasCube())
+                    mIntake.overrideHasCube();
+            } else if (!exhaustExchange && _exhaustExchange) {
+                mIntake.setWantsExhaust();
+                wantsExhaust = true;
+            } else if (exhaustSwitch && !_exhaustSwitch) {
+                mCubeState = RobotCubeState.EXHAUST_SWITCH;
+                if (!mIntake.hasCube())
+                    mIntake.overrideHasCube();
+            } else if (!exhaustSwitch && _exhaustSwitch) {
+                mIntake.setWantsExhaust();
+                wantsExhaust = true;
+            } else if (loadLauncher && !_loadLauncher) {
+                mCubeState = RobotCubeState.LOAD_SHOOTER;
+                if (!mIntake.hasCube())
+                    mIntake.overrideHasCube();
             }
-            else {
+            /*else {
                 mIntake.setWantedState(Intake.WantedState.HOLDING);
                 mCubeState = RobotCubeState.HOLDING;
+            }*/
+
+            switch (mCubeState) {
+                case INTAKE_FLOOR:
+                    if (mIntake.hasCube()) {
+                        mIntake.setWantedState(Intake.WantedState.HOLDING);
+                        mCubeState = RobotCubeState.HOLDING;
+                    } else {
+                        mIntake.setWantedState(Intake.WantedState.ACQUIRE_FLOOR);
+                        System.out.println(Constants.kGameSpecificMessage);
+                    }
+                    break;
+                case INTAKE_STACK:
+                    if (mIntake.hasCube()) {
+                        mIntake.setWantedState(Intake.WantedState.HOLDING);
+                        mCubeState = RobotCubeState.HOLDING;
+                    } else {
+                        mIntake.setWantedState(Intake.WantedState.ACQUIRE_STACK);
+                    }
+                    break;
+                case EXHAUST_SWITCH:
+                    if (!mIntake.hasCube()) {
+                        mIntake.setWantedState(Intake.WantedState.HOLDING);
+                        mCubeState = RobotCubeState.HOLDING;
+                    } else {
+                        mIntake.setWantedState(Intake.WantedState.SCORE_SWITCH);
+                        if (wantsExhaust) {
+                            mCubeState = RobotCubeState.HOLDING;
+                        }
+                    }
+                    break;
+                case EXHAUST_EXCHANGE:
+                    if (!mIntake.hasCube()) {
+                        mIntake.setWantedState(Intake.WantedState.HOLDING);
+                        mCubeState = RobotCubeState.HOLDING;
+                    } else {
+                        mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
+                        if (wantsExhaust) {
+                            mCubeState = RobotCubeState.HOLDING;
+                        }
+                    }
+                    break;
+                case LOAD_SHOOTER:
+                    if (!mIntake.hasCube()) {
+                        mIntake.setWantedState(Intake.WantedState.HOLDING);
+                        mCubeState = RobotCubeState.HOLDING;
+                    } else {
+                        mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
+                    }
+                    break;
+                default:
+                    mIntake.setWantedState(Intake.WantedState.HOLDING);
+                    break;
             }
 
             allPeriodic();
+            _climb           = climb;
+            _exhaustExchange = exhaustExchange;
+            _exhaustSwitch   = exhaustSwitch;
+            _extendClimber   = extendClimber;
+            _intakeFloor     = intakeFloor;
+            _intakeStack     = intakeStack;
+            _loadLauncher    = loadLauncher;
+            _retractClimber  = retractClimber;
+            _spoolShooter    = spoolShooter;
+            _wantsCube       = wantsCube;
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

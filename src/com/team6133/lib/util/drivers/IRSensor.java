@@ -32,7 +32,7 @@ public class IRSensor {
         return mAnalogInput.getAverageVoltage();
     }
 
-    public boolean seesBall() {
+    public boolean seesWall() {
         return mAnalogTrigger.getTriggerState();
     }
 
