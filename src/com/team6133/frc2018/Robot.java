@@ -1,5 +1,6 @@
 package com.team6133.frc2018;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.team6133.frc2018.auto.AutoModeExecuter;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.frc2018.subsystems.*;
@@ -43,7 +44,8 @@ public class Robot extends IterativeRobot {
     // Get subsystem instances
     private Drive mDrive = Drive.getInstance();
     private Intake mIntake = Intake.getInstance();
-    // ~!@private Superstructure mSuperstructure = Superstructure.getInstance();
+    private Launcher mLauncher = Launcher.getInstance();
+    private Climber mClimber = Climber.getInstance();
 
     // private LED mLED = LED.getInstance();
     private AutoModeExecuter mAutoModeExecuter = null;
@@ -64,7 +66,7 @@ public class Robot extends IterativeRobot {
         CrashTracker.logRobotConstruction();
     }
 
-    public void zeroAllSensors() {
+    private void zeroAllSensors() {
         mSubsystemManager.zeroSensors();
         mDrive.zeroSensors();
     }
@@ -88,13 +90,10 @@ public class Robot extends IterativeRobot {
     private RobotCubeState mCubeState;
     private boolean _intakeFloor         = false;
     private boolean _intakeStack         = false;
-    private boolean _spoolShooter        = false;
+    private boolean _wantsAim            = false;
     private boolean _exhaustExchange     = false;
     private boolean _exhaustSwitch       = false;
     private boolean _loadLauncher        = false;
-    private boolean _extendClimber       = false;
-    private boolean _retractClimber      = false;
-    private boolean _climb               = false;
     private boolean _wantsCube           = false;
 
     /**
@@ -119,6 +118,7 @@ public class Robot extends IterativeRobot {
         }
         zeroAllSensors();
         mCubeState = RobotCubeState.HOLDING;
+        mMatchState = MatchState.PRE_MATCH;
     }
 
     /**
@@ -157,13 +157,13 @@ public class Robot extends IterativeRobot {
             mEnabledLooper.start();
             // ~!@mSuperstructure.reloadConstants();
             mAutoModeExecuter = new AutoModeExecuter();
-            mAutoModeExecuter.setAutoMode(AutoModeSelector.getSelectedAutoMode());
             mAutoModeExecuter.start();
 
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
+        mMatchState = MatchState.MID;
     }
 
     /**
@@ -191,6 +191,7 @@ public class Robot extends IterativeRobot {
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
+        mMatchState = MatchState.END;
     }
 
     /**
@@ -213,7 +214,6 @@ public class Robot extends IterativeRobot {
             boolean wants_aim_button    = mControlBoard.getWantsLaunchButton();
             boolean intakeFloor         = mControlBoard.getIntakeFloorButton();
             boolean intakeStack         = mControlBoard.getIntakeStackButton();
-            boolean spoolShooter        = mControlBoard.getSpoolShooterButton();
             boolean exhaustExchange     = mControlBoard.getExhaustExchangeButton();
             boolean exhaustSwitch       = mControlBoard.getExhaustSwitchButton();
             boolean loadLauncher        = mControlBoard.getLoadLauncherButton();
@@ -231,13 +231,18 @@ public class Robot extends IterativeRobot {
             // Prioritize the button input and set/update the robot accordingly.
             // Presently, these actions only happen *while* the button is pressed.
             // When no drive-related button is pressed, the robot will default to OPEN_LOOP
-            if (wants_aim_button) {
+            if (!wants_aim_button && _wantsAim) {
+                // We just released the aim button. Time to fire!
+                mDrive.updateAlignLaunch();
+                mLauncher.setWantsLaunch();
+            } else if (wants_aim_button) {
                 if (mDriveState != RobotDriveState.WANTS_AIM) {
                     mDrive.setAlignLaunch(timestamp);
                     mDriveState = RobotDriveState.WANTS_AIM;
                     Timer.delay(.005);
                 }
                 mDrive.updateAlignLaunch();
+                mLauncher.setWantedState(Launcher.WantedState.ALIGN);
                 // @TODO: Add more launcher functionality.
             } else if (rotateRightButton) {
                 if (mDriveState != RobotDriveState.HEADING_SETPOINT || mDrive.getTargetHeading() != -90) {
@@ -301,6 +306,18 @@ public class Robot extends IterativeRobot {
                 mCubeState = RobotCubeState.HOLDING;
             }*/
 
+            // Set the wanted state of the Climber
+            if (climb) {
+                mClimber.setWantedState(Climber.WantedState.CLIMB);
+            } else if (retractClimber) {
+                mClimber.setWantedState(Climber.WantedState.RETRACT);
+            } else if (extendClimber) {
+                mClimber.setWantedState(Climber.WantedState.EXTEND);
+            } else {
+                mClimber.setWantedState(Climber.WantedState.IDLE);
+            }
+
+
             switch (mCubeState) {
                 case INTAKE_FLOOR:
                     if (mIntake.hasCube()) {
@@ -355,21 +372,24 @@ public class Robot extends IterativeRobot {
             }
 
             allPeriodic();
-            _climb           = climb;
             _exhaustExchange = exhaustExchange;
             _exhaustSwitch   = exhaustSwitch;
-            _extendClimber   = extendClimber;
             _intakeFloor     = intakeFloor;
             _intakeStack     = intakeStack;
             _loadLauncher    = loadLauncher;
-            _retractClimber  = retractClimber;
-            _spoolShooter    = spoolShooter;
+            _wantsAim        = wants_aim_button;
             _wantsCube       = wantsCube;
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
     }
+
+    private enum MatchState {
+        PRE_MATCH, MID, END
+    }
+
+    private MatchState mMatchState;
 
     @Override
     public void disabledInit() {
@@ -392,6 +412,7 @@ public class Robot extends IterativeRobot {
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
+
     }
 
     @Override
@@ -401,37 +422,45 @@ public class Robot extends IterativeRobot {
          * (mCheckLightButton.getAverageVoltage() < kVoltageThreshold) {
          * mLED.setLEDOn(); } else { mLED.setLEDOff(); }
          */
-        zeroAllSensors();
+        if (mMatchState == MatchState.PRE_MATCH) {
+            zeroAllSensors();
+            // If we are connected to the FMS, then let's check every 5ms for the message.
+            if ( DriverStation.getInstance().isFMSAttached() ) {
+                if ( Constants.kGameSpecificMessage.length() != 3) {
+                    Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
+                    Timer.delay(0.005);
+                }
+                Constants.kAllianceColor = DriverStation.getInstance().getAlliance();
+            } else {    // We are not connected to the FMS, so randomly generate the message.
+                if ( Constants.kGameSpecificMessage.length() != 4) {
+                    Constants.kGameSpecificMessage = Constants.kMyGameMessages[ThreadLocalRandom.current().nextInt(0,8)];
+                }
+                // Update the constant for knowing our Alliance Color (used mostly for Auton)
+                if (Constants.kAllianceColor == DriverStation.Alliance.Invalid)
+                {
+                    Constants.kAllianceColor = DriverStation.getInstance().getAlliance();
+                }
+            }
+        } else if (mMatchState == MatchState.MID) {
+
+        } else if (mMatchState == MatchState.END) {
+
+        }
+
         allPeriodic();
 
-        // If we are connected to the FMS, then let's check every 5ms for the message.
-        if ( DriverStation.getInstance().isFMSAttached() ) {
-            if ( Constants.kGameSpecificMessage.length() != 3) {
-                Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
-                Timer.delay(0.005);
-            }
-        } else {    // We are not connected to the FMS, so randomly generate the message.
-            if ( Constants.kGameSpecificMessage.length() != 4) {
-                Constants.kGameSpecificMessage = Constants.kMyGameMessages[ThreadLocalRandom.current().nextInt(0,8)];
-            }
-        }
-        // Update the constant for knowing our Alliance Color (used mostly for Auton)
-        if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Blue) {
-            Constants.kAllianceColor = "Blue";
-        } else {
-            Constants.kAllianceColor = "Red";
-        }
+
         // Display the game specific message on the REV Digit Board (connected to the MXP).
         mRevDigitBoard.display(Constants.kGameSpecificMessage);
 
     }
-
     @Override
     public void testInit() {
         Timer.delay(0.5);
 
         boolean results = true;
-        results &= Drive.getInstance().checkSystem();
+        //results &= Drive.getInstance().checkSystem();
+        //results &= !Intake.getInstance().checkSystem();
 
         if (!results) {
             System.out.println("CHECK ABOVE OUTPUT SOME SYSTEMS FAILED!!!");

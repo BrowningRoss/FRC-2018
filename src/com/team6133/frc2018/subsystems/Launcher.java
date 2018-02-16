@@ -35,10 +35,10 @@ public class Launcher extends Subsystem {
 
     // @TODO: Plug in the Rev Robotics Air Pressure Sensor to analog input port 0
     private final RevRoboticsAirPressureSensor mAirPressureSensor =
-            new RevRoboticsAirPressureSensor(Constants.kRevAirSensorPWM);
+            new RevRoboticsAirPressureSensor(Constants.kRevAirSensorPort);
 
-    private final WPI_TalonSRX mMasterTalon, mSlaveTalon;
-    private final Spark mLeftLauncherSpark, mRightLauncherSpark;
+    public final WPI_TalonSRX mMasterTalon, mSlaveTalon;
+    public final Spark mLeftLauncherSpark, mRightLauncherSpark;
 
     // Internal state of the system
     public enum SystemState {
@@ -84,14 +84,21 @@ public class Launcher extends Subsystem {
         mMasterTalon.config_kI(0, Constants.kLauncherKi, 10);
         mMasterTalon.config_kD(0, Constants.kLauncherKd, 10);
         mMasterTalon.config_kF(0, Constants.kLauncherKf, 10);
+        mMasterTalon.setSensorPhase(true);
 
         mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
+        mSlaveTalon.setNeutralMode(NeutralMode.Coast);
+        mSlaveTalon.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5,10);
         mSlaveTalon.setInverted(true);
 
         mLeftLauncherSpark.set(0);
         mRightLauncherSpark.set(0);
 
         mLauncherSolenoid.set(DoubleSolenoid.Value.kForward);
+    }
+
+    public synchronized void setWantedState(WantedState wanted) {
+        mWantedState = wanted;
     }
 
     public synchronized void setWantsLaunch() {mWantsLaunch = true;}
@@ -108,9 +115,6 @@ public class Launcher extends Subsystem {
             case ALIGN:
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 return SystemState.ALIGNING;
-            case LAUNCH:
-                mThresholdStart = Double.POSITIVE_INFINITY;
-                return SystemState.LAUNCHING;
             default:
                 return SystemState.IDLE;
         }
@@ -153,7 +157,7 @@ public class Launcher extends Subsystem {
         mMasterTalon.set(ControlMode.Velocity, mLaunchRPM);
         mLauncherSolenoid.set(DoubleSolenoid.Value.kReverse);
 
-
+        System.out.println(mMasterTalon.getSelectedSensorVelocity(0));
         if (mThresholdStart == Double.POSITIVE_INFINITY) {
             mThresholdStart = timeInState;
         } else {

@@ -41,6 +41,10 @@ public class Climber extends Subsystem {
         mWinchSpark  = new Spark(Constants.kClimbWinchPWM  );
     }
 
+    public synchronized void setWantedState(WantedState wanted) {
+        mWantedState = wanted;
+    }
+
     private SystemState handleIdle() {
         switch(mWantedState) {
             case CLIMB:

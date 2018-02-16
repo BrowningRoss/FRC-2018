@@ -2,6 +2,7 @@ package com.team6133.frc2018;
 
 import com.team6133.lib.util.ConstantsBase;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Solenoid;
 
 import java.net.NetworkInterface;
@@ -15,7 +16,7 @@ import java.util.Enumeration;
 public class Constants extends ConstantsBase {
     //Game Match Data
     public static String kGameSpecificMessage = "";
-    public static String kAllianceColor = "Red";
+    public static DriverStation.Alliance kAllianceColor = DriverStation.Alliance.Invalid;
     public static final String[] kMyGameMessages = new String[8];
     static {
         kMyGameMessages[0] = "LLLX";
@@ -30,26 +31,30 @@ public class Constants extends ConstantsBase {
 
     /* Talon SRX CAN ID's */
     // Drive
-    public static final int kFrontLeftDriveId   = 7;
-    public static final int kRearLeftDriveId    = 6;
-    public static final int kFrontRightDriveId  = 4;
-    public static final int kRearRightDriveId   = 1;
+    public static final int kFrontLeftDriveId   = 8;
+    public static final int kRearLeftDriveId    = 3;
+    public static final int kFrontRightDriveId  = 5;
+    public static final int kRearRightDriveId   = 7;
 
     // Intake
-    public static final int kIntakeArmId        = 5;
+    public static final int kIntakeArmId        = 1;
 
     // Launcher
-    public static final int kLauncherMasterId   = 2;
-    public static final int kLauncherSlaveId    = 3;
+    public static final int kLauncherMasterId   = 6;
+    public static final int kLauncherSlaveId    = 4;
 
     // PWM Slots
-    public static final int kRevAirSensorPWM    = 0;
     public static final int kIntakeLeftPWM      = 1;
     public static final int kIntakeRightPWM     = 2;
     public static final int kLauncherLeftPWM    = 3;
     public static final int kLauncherRightPWM   = 4;
     public static final int kClimbPulleyPWM     = 5;
     public static final int kClimbWinchPWM      = 6;
+
+    // Analog Ports
+    public static final int kRevAirSensorPort   = 0;
+    public static final int kIRPDRightPort      = 1;
+    public static final int kIRPDLeftPort       = 2;
 
     // Solenoid IDs
     public static final int kLauncherSolenoidId = 0;    // PCM 0, Forward Channel 0, Reverse Channel 1
@@ -60,6 +65,10 @@ public class Constants extends ConstantsBase {
     public static final double kLauncherRPM = 6133; // @TODO: Determine actual RPM
     public static final double kLauncherCoolDownTime = 1.0; // 1 Second to spool down after launch
     public static final double kLaunchTimeThreshold = 1.0; // 1 second to launch
+
+    // IRPD Voltage Tuning
+    public static final double MAX_TRIGGER_VOLTAGE = 2.7;
+    public static final double MIN_TRIGGER_VOLTAGE = 2.5;
 
 
     /* ROBOT PHYSICAL CONSTANTS */
@@ -75,11 +84,6 @@ public class Constants extends ConstantsBase {
     public static double kCenterToIntakeDistance;
     public static double kCenterToRearBumperDistance;
     public static double kCenterToSideBumperDistance;
-
-    // Analog Input Ports
-    public static final int kIRPDFrontPort = 1;
-    public static final int kIRPDLeftPort  = 2;
-    public static final int kIRPDRightPort = 3;
 
     /* CONTROL LOOP GAINS */
     // PID gains for drive Heading Setpoint loop
@@ -98,12 +102,12 @@ public class Constants extends ConstantsBase {
     public static final double kLauncherKd   = 0.02;
     public static final double kLauncherKf   = 0;
     // PID gains for the Intake Arm Setpoint loop
-    public static final double kIntakeKp     = 0.01;
-    public static final double kIntakeKi     = 0.001;
-    public static final double kIntakeKd     = 0.02;
+    public static final double kIntakeKp     = 1;
+    public static final double kIntakeKi     = 0.10;
+    public static final double kIntakeKd     = 2.0;
     public static final double kIntakeKf     = 0;
 
-    public static final double kLaunchProxSetpoint = 0.0000;    // @TODO: Determine the correct setpoint.
+    public static final double kLaunchProxSetpoint = 20;
 
     public static double kTwistMaxOutput = 0.66;
 

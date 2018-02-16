@@ -4,13 +4,17 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.team6133.frc2018.Constants;
+import com.team6133.frc2018.auto.Destination;
+import com.team6133.frc2018.auto.StartingPosition;
 import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.lib.util.DriveSignal;
 import com.team6133.lib.util.Util;
 import com.team6133.lib.util.control.SynchronousPIDF;
 import com.team6133.lib.util.drivers.CANTalonFactory;
+import com.team6133.lib.util.drivers.IRSensor;
 import com.team6133.lib.util.drivers.NavXmicro;
+import com.team6133.lib.util.drivers.UltrasonicSensor;
 import com.team6133.lib.util.math.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
@@ -36,11 +40,15 @@ public class Drive extends Subsystem {
     // Hardware
     private final WPI_TalonSRX mFrontLeft, mFrontRight, mRearLeft, mRearRight;
     private final NavXmicro mNavXBoard;
+    private final UltrasonicSensor mFrontSensor;
+    public final IRSensor mLeftSensor, mRightSensor;
     // Logging
     //???private final ReflectingCSVWriter<PathFollower.DebugOutput> mCSVWriter;
     // Control states
     private DriveControlState mDriveControlState;
     private DriveSignal mDriveSignal;
+    private StartingPosition mStartingPosition;
+    private Destination mDestination;
     // These gains get reset below!!
     private Rotation2d mTargetHeading = new Rotation2d(Rotation2d.fromDegrees(0));
     // PID for heading control
@@ -76,9 +84,11 @@ public class Drive extends Subsystem {
                         return;
                     case LAUNCH_SETPOINT:
                         mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
-                        mPIDProxFront.calculate(0.000, Constants.kLooperDt);    // @TODO: Add IRPD or Ultrasonic input
+                        mPIDProxFront.calculate(mFrontSensor.getAverageDistance(), Constants.kLooperDt);
                         return;
                     case POLAR_DRIVE:
+                        return;
+                    case AUTON:
                         return;
                     default:
                         System.out.println("Unexpected drive control state: " + mDriveControlState);
@@ -117,7 +127,11 @@ public class Drive extends Subsystem {
 
         mPIDProxFront.setDeadband(0.02);
         mPIDProxFront.setOutputRange(-1.0, 1.0);
-        mPIDProxFront.setInputRange(0, 100); //@TODO: Determine the correct input range
+        mPIDProxFront.setInputRange(0.1, 545);
+
+        mFrontSensor = new UltrasonicSensor(10,12);
+        mRightSensor = new IRSensor(Constants.kIRPDRightPort, Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
+        mLeftSensor  = new IRSensor(Constants.kIRPDLeftPort,Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
 
 
         // NavXmicro using I2C on the RoboRIO (NOT using the MXP slot)
@@ -282,6 +296,14 @@ public class Drive extends Subsystem {
         }
     }
 
+    public synchronized void setAutonPath(double heading, double target_proximity, StartingPosition position, Destination destination, double timeStamp) {
+        mStartingPosition = position;
+        mDestination = destination;
+        mTargetHeading = Rotation2d.fromDegrees(heading);
+        mDriveControlState = DriveControlState.AUTON;
+    }
+
+
     @Override
     public synchronized void stop() {
         mDriveSignal = DriveSignal.NEUTRAL;
@@ -332,6 +354,7 @@ public class Drive extends Subsystem {
         HEADING_SETPOINT,   // heading PID control
         LAUNCH_SETPOINT,    // launch PID control
         POLAR_DRIVE,        // not used - here just for testing
+        AUTON
     }
 
     public boolean checkSystem() {

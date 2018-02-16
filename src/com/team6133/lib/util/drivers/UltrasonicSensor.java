@@ -1,32 +1,28 @@
 package com.team6133.lib.util.drivers;
 
-import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.Ultrasonic;
 
 import java.util.LinkedList;
 
 /**
- * Driver for an analog Ultrasonic Sensor (mainly to help smooth out noise).
+ * Driver for a trigger/echo analog Ultrasonic Sensor (mainly to help smooth out noise).
  */
-public class UltrasonicSensor {
+public class UltrasonicSensor extends Ultrasonic {
     private static final int kCacheSize = 5;
-    protected AnalogInput mAnalogInput;
-    protected double mScalingFactor = 512.0 / 5.0;
+    private final double mScalingFactor = 1.0 / 148.0;
     private LinkedList<Double> cache;
 
-    public UltrasonicSensor(int port) {
-        mAnalogInput = new AnalogInput(port);
+    public UltrasonicSensor(int ping_port, int echo_port) {
+        super(ping_port, echo_port, Unit.kInches);
         cache = new LinkedList<Double>();
-        cache.add(getRawDistance());
+        setAutomaticMode(true);
+        cache.add(getRangeInches());
     }
 
     public void update() {
-        cache.add(getRawDistance());
+        cache.add(getRangeInches());
         if (cache.size() > kCacheSize)
             cache.removeFirst();
-    }
-
-    public double getRawDistance() {
-        return mAnalogInput.getVoltage() * mScalingFactor;
     }
 
     public double getAverageDistance() {
