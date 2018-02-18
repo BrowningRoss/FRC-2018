@@ -4,11 +4,12 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.team6133.frc2018.Constants;
-import com.team6133.frc2018.auto.Destination;
-import com.team6133.frc2018.auto.StartingPosition;
+import com.team6133.frc2018.auto.AutonPathSettings;
 import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.lib.util.DriveSignal;
+import com.team6133.lib.util.SensorTarget;
+import com.team6133.lib.util.TimeDelayedBoolean;
 import com.team6133.lib.util.Util;
 import com.team6133.lib.util.control.SynchronousPIDF;
 import com.team6133.lib.util.drivers.CANTalonFactory;
@@ -47,8 +48,7 @@ public class Drive extends Subsystem {
     // Control states
     private DriveControlState mDriveControlState;
     private DriveSignal mDriveSignal;
-    private StartingPosition mStartingPosition;
-    private Destination mDestination;
+    private AutonPathSettings mPathSetting;
     // These gains get reset below!!
     private Rotation2d mTargetHeading = new Rotation2d(Rotation2d.fromDegrees(0));
     // PID for heading control
@@ -88,7 +88,8 @@ public class Drive extends Subsystem {
                         return;
                     case POLAR_DRIVE:
                         return;
-                    case AUTON:
+                    case AUTON_POLAR:
+                        mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
                         return;
                     default:
                         System.out.println("Unexpected drive control state: " + mDriveControlState);
@@ -104,8 +105,7 @@ public class Drive extends Subsystem {
         }
     };
 
-    private boolean mIsOnTarget = false;
-    private boolean mIsApproaching = false;
+    private TimeDelayedBoolean mAutonTimedBoolean;
     private Drive() {
         // Start all Talons in open loop mode.
         mFrontLeft = CANTalonFactory.createDefaultTalon(Constants.kFrontLeftDriveId);
@@ -131,7 +131,7 @@ public class Drive extends Subsystem {
 
         mFrontSensor = new UltrasonicSensor(10,12);
         mRightSensor = new IRSensor(Constants.kIRPDRightPort, Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
-        mLeftSensor  = new IRSensor(Constants.kIRPDLeftPort,Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
+        mLeftSensor  = new IRSensor(Constants.kIRPDLeftPort, Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
 
 
         // NavXmicro using I2C on the RoboRIO (NOT using the MXP slot)
@@ -140,6 +140,7 @@ public class Drive extends Subsystem {
         // Initialize the Mecanum Drive
         mMecanumDrive = new MecanumDrive(mFrontLeft, mRearLeft, mFrontRight, mRearRight);
         mDriveSignal = DriveSignal.NEUTRAL;
+        mAutonTimedBoolean = new TimeDelayedBoolean();
         setOpenLoop();
 
     }
@@ -204,7 +205,6 @@ public class Drive extends Subsystem {
         Rotation2d heading_ = Rotation2d.fromDegrees(heading);
         if (Math.abs(heading_.inverse().rotateBy(mTargetHeading).getDegrees()) > 1E-3) {
             mTargetHeading = heading_;
-            mIsOnTarget = false;
         }
         if (mDriveControlState != DriveControlState.HEADING_SETPOINT) {
             mDriveControlState = DriveControlState.HEADING_SETPOINT;
@@ -296,13 +296,39 @@ public class Drive extends Subsystem {
         }
     }
 
-    public synchronized void setAutonPath(double heading, double target_proximity, StartingPosition position, Destination destination, double timeStamp) {
-        mStartingPosition = position;
-        mDestination = destination;
-        mTargetHeading = Rotation2d.fromDegrees(heading);
-        mDriveControlState = DriveControlState.AUTON;
+    public synchronized void setAutonPath(AutonPathSettings pathSetting, double timeStamp) {
+        mTargetHeading         = pathSetting.getOrientation();
+        mPathSetting           = pathSetting;
+        mDriveControlState     = DriveControlState.AUTON_POLAR;
+        mCurrentStateStartTime = timeStamp;
+        mTimeInState           = 0.0;
+
+        mPIDTwist.resetIntegrator();
+        mPIDTwist.setSetpoint(mTargetHeading.getDegrees());
+
+        // Force a reset of the time delayed boolean
+        mAutonTimedBoolean.update(false, mPathSetting.getTimeout());
+        mAutonTimedBoolean.update(true, mPathSetting.getTimeout());
+
+        mMecanumDrive.drivePolar(.42, mPathSetting.getHeading().getDegrees(),0);
     }
 
+    /**
+     * Update the autonomous path
+     * @return True if the sensor triggers true and the timer has passed
+     */
+    public boolean updateAutonPath() {
+        boolean sensor;
+        mMecanumDrive.drivePolar(.6, mPathSetting.getHeading().getDegrees(), mPIDTwist.get());
+        if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.LeftIRPD) {
+            sensor = mPathSetting.getSensorTarget().invert != mLeftSensor.seesWall();
+        } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.RightIRPD) {
+            sensor = mRightSensor.seesWall() != mPathSetting.getSensorTarget().invert;
+        } else {
+            sensor = Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 1.5;
+        }
+        return mAutonTimedBoolean.update(true, mPathSetting.getTimeout()) && sensor;
+    }
 
     @Override
     public synchronized void stop() {
@@ -354,7 +380,8 @@ public class Drive extends Subsystem {
         HEADING_SETPOINT,   // heading PID control
         LAUNCH_SETPOINT,    // launch PID control
         POLAR_DRIVE,        // not used - here just for testing
-        AUTON
+        AUTON_POLAR,
+        AUTON_CARTESIAN
     }
 
     public boolean checkSystem() {

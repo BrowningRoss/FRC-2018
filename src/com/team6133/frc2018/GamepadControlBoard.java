@@ -43,14 +43,15 @@ public class GamepadControlBoard implements ControlBoardInterface {
     }
 
     @Override
-    public boolean getIntakeFloorButton() {
-        // L1
-        return mGamepad.getRawButton(5);
+    public boolean getWantsAlignButton() {
+        // L Trigger
+        return mGamepad.getRawAxis(2) > 0.1;
     }
 
     @Override
-    public boolean getSpoolShooterButton() {
-        return false;
+    public boolean getIntakeFloorButton() {
+        // L1
+        return mGamepad.getRawButton(5);
     }
 
     @Override
@@ -60,20 +61,6 @@ public class GamepadControlBoard implements ControlBoardInterface {
 
     @Override
     public boolean getExhaustSwitchButton() {
-        return false;
-    }
-
-    public boolean getGrabGearButton() {
-        // L Trigger
-        return mGamepad.getRawAxis(2) > 0.1;
-    }
-
-    public boolean getScoreGearButton() {
-        return mGamepad.getRawAxis(3) > 0.1;
-    }
-
-    @Override
-    public boolean getUnjamButton() {
         return false;
     }
 
@@ -102,11 +89,6 @@ public class GamepadControlBoard implements ControlBoardInterface {
     public boolean getClimbButton() {
         // A
         return mGamepad.getRawButton(1);
-    }
-
-    @Override
-    public boolean getBlinkLEDButton() {
-        return false;
     }
 
     @Override

@@ -39,4 +39,8 @@ public class IRSensor {
     public void resetCount() {
         mCounter.reset();
     }
+
+    public synchronized void setLimitsVoltage(double min_trigger_voltage, double max_trigger_voltage) {
+        mAnalogTrigger.setLimitsVoltage(min_trigger_voltage, max_trigger_voltage);
+    }
 }

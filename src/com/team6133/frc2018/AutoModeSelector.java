@@ -1,7 +1,6 @@
 package com.team6133.frc2018;
 
 import com.team6133.frc2018.auto.AutoModeBase;
-import com.team6133.frc2018.auto.StartingPosition;
 import com.team6133.frc2018.auto.modes.StandStillMode;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;

@@ -50,52 +50,39 @@ public class ControlBoard implements ControlBoardInterface {
     // OPERATOR CONTROLS
     @Override
     public boolean getRotateLeftButton() {
-        return mButtonBoard.getRawButton(1);
+        return false;
     }
 
     @Override
     public boolean getRotateRightButton() {
-        return mButtonBoard.getRawButton(4);
-    }
-
-    @Override
-    public boolean getIntakeStackButton() {
-        return mButtonBoard.getRawAxis(2) < -0.1;
-    }
-
-    @Override
-    public boolean getIntakeFloorButton() {
-        return mButtonBoard.getRawAxis(3) < -0.1;
-    }
-
-    @Override
-    public boolean getSpoolShooterButton() {
         return false;
     }
 
     @Override
-    public boolean getExhaustExchangeButton() {
-        return false;
-    }
+    public boolean getIntakeStackButton() { return mButtonBoard.getRawButton(8);}
+
+    @Override
+    public boolean getWantsAlignButton() { return Math.abs(mButtonBoard.getRawAxis(2)) > 0.2;}
+
+    @Override
+    public boolean getIntakeFloorButton() { return mButtonBoard.getRawButton(2);}
+
+    @Override
+    public boolean getExhaustExchangeButton() { return mButtonBoard.getRawButton(6);}
 
     @Override
     public boolean getExhaustSwitchButton() {
-        return false;
-    }
-
-    @Override
-    public boolean getUnjamButton() {
-        return mButtonBoard.getRawButton(4);
+        return mButtonBoard.getRawButton(5);
     }
 
     @Override
     public boolean getWantsLaunchButton() {
-        return mButtonBoard.getRawButton(8);
+        return Math.abs(mButtonBoard.getRawAxis(3)) > 0.2;
     }
 
     @Override
     public boolean getLoadLauncherButton() {
-        return false;
+        return mButtonBoard.getRawButton(4);
     }
 
     @Override
@@ -114,12 +101,7 @@ public class ControlBoard implements ControlBoardInterface {
     }
 
     @Override
-    public boolean getBlinkLEDButton() {
-        return mButtonBoard.getRawButton(9);
-    }
-
-    @Override
     public boolean getWantsCubeIntakeButton() {
-        return false;
+        return mButtonBoard.getRawButton(7);
     }
 }

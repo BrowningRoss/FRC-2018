@@ -21,13 +21,11 @@ public interface ControlBoardInterface {
 
     boolean getIntakeStackButton();
 
-    boolean getSpoolShooterButton();
+    boolean getWantsAlignButton();
 
     boolean getExhaustExchangeButton();
 
     boolean getExhaustSwitchButton();
-
-    boolean getUnjamButton();
 
     boolean getWantsLaunchButton();
 
@@ -38,8 +36,6 @@ public interface ControlBoardInterface {
     boolean getRetractClimbButton();
 
     boolean getClimbButton();
-
-    boolean getBlinkLEDButton();
 
     boolean getWantsCubeIntakeButton();
 

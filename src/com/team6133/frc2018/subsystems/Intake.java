@@ -22,10 +22,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Intake extends Subsystem {
 
-    private static final double kIntakeFloorCubeSetpoint = 700;
+    private static final double kIntakeFloorCubeSetpoint = 575;
     private static final double kIntakeStackCubeSetpoint = 350;
     private static final double kExhaustSwitchSetpoint   = 100;
-    private static final double kExhaustExchangeSetpoint = 700;
+    private static final double kExhaustExchangeSetpoint = 575;
     private static final double kHoldingSetpoint         = 0.000000;
     private static final double kLoadShooterSetpoint     = 0;
 
@@ -36,11 +36,11 @@ public class Intake extends Subsystem {
     private static final double kTransitionDelay = 0.5;
     private static final double kExhaustDelay = 0.1;
     private static final double kStowingDelay = 0.1;
-    private static final double kIntakeThreshold = 15;
+    private static final double kIntakeThreshold = 17;
     private static final double kThresholdTime = 0.25;
 
     private static final int kAllowableClosedLoopError = 5;
-    private static final int kPDPSparkSlot = 10;
+    private static final int kPDPSparkSlot = 5;
 
     private final DoubleSolenoid mLeftSolenoid, mRightSolenoid;
 
@@ -106,8 +106,6 @@ public class Intake extends Subsystem {
         mArmTalon.setInverted(true);
         mArmTalon.setSensorPhase(true);
 
-        mRightSpark.setSafetyEnabled(true);
-        mLeftSpark.setSafetyEnabled(true);
         mLeftSpark.set(0);
         mRightSpark.set(0);
 
@@ -411,7 +409,7 @@ public class Intake extends Subsystem {
         SmartDashboard.putNumber("Intake Arm Position", mArmTalon.getSelectedSensorPosition(0));
 
         SmartDashboard.putNumber("Intake Left Current", mPDP.getCurrent(kPDPSparkSlot));
-        SmartDashboard.putNumber("Intake Right Current", mPDP.getCurrent(4));
+        SmartDashboard.putNumber("Intake Right Current", mPDP.getCurrent(6));
     }
 
     @Override
@@ -487,12 +485,19 @@ public class Intake extends Subsystem {
         };
         enabledLooper.register(loop);
     }
-
+    double max = 0;
     public boolean checkSystem() {
         boolean failure = false;
         int loop = 0;
-        mArmTalon.set(ControlMode.Position, 700);
-        System.out.println(mArmTalon.getSelectedSensorPosition(0) + "\t" + mArmTalon.getOutputCurrent());
+        mArmTalon.set(ControlMode.Position, 550);
+        mLeftSpark.set(kIntakeMotorSetpoint);
+        mRightSpark.set(-kIntakeMotorSetpoint);
+
+        double current = mPDP.getCurrent(kPDPSparkSlot);
+        if (current > max) {
+            max = current;
+            System.out.println("Intake Max Current:\t"+max);
+        }
 
         return failure;
     }

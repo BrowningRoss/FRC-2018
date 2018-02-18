@@ -38,7 +38,7 @@ public class Robot extends IterativeRobot {
     // Create subsystem manager
     private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(Drive.getInstance(),
             Intake.getInstance(),
-            Launcher.getInstance(), Climber.getInstance(),
+            Launcher.getInstance(), //Climber.getInstance(),
             ConnectionMonitor.getInstance()// , LED.getInstance(),
     ));
     // Get subsystem instances
@@ -91,6 +91,7 @@ public class Robot extends IterativeRobot {
     private boolean _intakeFloor         = false;
     private boolean _intakeStack         = false;
     private boolean _wantsAim            = false;
+    private boolean _wantsLaunch         = false;
     private boolean _exhaustExchange     = false;
     private boolean _exhaustSwitch       = false;
     private boolean _loadLauncher        = false;
@@ -211,7 +212,8 @@ public class Robot extends IterativeRobot {
             // Get Buttons
             boolean rotateLeftButton    = mControlBoard.getRotateLeftButton();
             boolean rotateRightButton   = mControlBoard.getRotateRightButton();
-            boolean wants_aim_button    = mControlBoard.getWantsLaunchButton();
+            boolean wants_aim_button    = mControlBoard.getWantsAlignButton();
+            boolean wantsLaunchButton   = mControlBoard.getWantsLaunchButton();
             boolean intakeFloor         = mControlBoard.getIntakeFloorButton();
             boolean intakeStack         = mControlBoard.getIntakeStackButton();
             boolean exhaustExchange     = mControlBoard.getExhaustExchangeButton();
@@ -231,18 +233,13 @@ public class Robot extends IterativeRobot {
             // Prioritize the button input and set/update the robot accordingly.
             // Presently, these actions only happen *while* the button is pressed.
             // When no drive-related button is pressed, the robot will default to OPEN_LOOP
-            if (!wants_aim_button && _wantsAim) {
-                // We just released the aim button. Time to fire!
-                mDrive.updateAlignLaunch();
-                mLauncher.setWantsLaunch();
-            } else if (wants_aim_button) {
+            if (wants_aim_button) {
                 if (mDriveState != RobotDriveState.WANTS_AIM) {
                     mDrive.setAlignLaunch(timestamp);
                     mDriveState = RobotDriveState.WANTS_AIM;
                     Timer.delay(.005);
                 }
                 mDrive.updateAlignLaunch();
-                mLauncher.setWantedState(Launcher.WantedState.ALIGN);
                 // @TODO: Add more launcher functionality.
             } else if (rotateRightButton) {
                 if (mDriveState != RobotDriveState.HEADING_SETPOINT || mDrive.getTargetHeading() != -90) {
@@ -266,13 +263,21 @@ public class Robot extends IterativeRobot {
                 }
             }
 
+            if (!wantsLaunchButton && _wantsLaunch) {
+                // We just released the aim button. Time to fire!
+                mLauncher.setWantsLaunch();
+            } else if (wantsLaunchButton && !_wantsLaunch) {
+                mLauncher.setWantedState(Launcher.WantedState.ALIGN);
+            }
+
             if (intakeFloor && !_intakeFloor) {
+                System.out.println("Intake Floor Button Pressed");
                 if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
                     mCubeState = RobotCubeState.INTAKE_FLOOR;
                     if (mIntake.hasCube())
                         mIntake.overrideHasCube();
                 } else {
-                    mCubeState = RobotCubeState.HOLDING;
+                    mCubeState = RobotCubeState.INTAKE_FLOOR;
                 }
             } else if (intakeStack && !_intakeStack) {
                 if (mCubeState != RobotCubeState.INTAKE_STACK) {
@@ -280,7 +285,7 @@ public class Robot extends IterativeRobot {
                     if (mIntake.hasCube())
                         mIntake.overrideHasCube();
                 } else {
-                    mCubeState = RobotCubeState.HOLDING;
+                    mCubeState = RobotCubeState.INTAKE_STACK;
                 }
             } else if (exhaustExchange && !_exhaustExchange) {
                 mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
@@ -378,6 +383,7 @@ public class Robot extends IterativeRobot {
             _intakeStack     = intakeStack;
             _loadLauncher    = loadLauncher;
             _wantsAim        = wants_aim_button;
+            _wantsLaunch     = wantsLaunchButton;
             _wantsCube       = wantsCube;
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
@@ -472,6 +478,12 @@ public class Robot extends IterativeRobot {
     @Override
     public void testPeriodic() {
         allPeriodic();
+        mLauncher.mMasterTalon.set(ControlMode.Velocity, 36000);
+        mLauncher.mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
+        mLauncher.mLeftLauncherSpark.set(-1);
+        mLauncher.mRightLauncherSpark.set(1);
+        //mLauncher.mMasterTalon.set(ControlMode.PercentOutput, 1);
+        System.out.println(mLauncher.mMasterTalon.getSelectedSensorVelocity(0));
     }
 
     /**

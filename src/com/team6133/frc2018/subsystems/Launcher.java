@@ -59,16 +59,16 @@ public class Launcher extends Subsystem {
     private WantedState mWantedState = WantedState.IDLE;
 
     private final double mLaunchRPM = Constants.kLauncherRPM;
-    private final double mSparkRPM  = 1.0;
+    private final double mSparkRPM  = -1.0;
     private final double kLaunchDelay = 0.1;
     private final double kLaunchTime  = 1.0;
     private final double kPostLaunchDelay = 0.05;
-    private final int    kAllowableClosedLoopError = 30;
+    private final int    kAllowableClosedLoopError = 600;
     private double mThresholdStart = Double.POSITIVE_INFINITY;
     private boolean mWantsLaunch = false;
 
     private Launcher() {
-        compressor.setClosedLoopControl(true);
+        compressor.setClosedLoopControl(false);
 
         mLeftLauncherSpark  = new Spark(Constants.kLauncherLeftPWM  );
         mRightLauncherSpark = new Spark(Constants.kLauncherRightPWM );
@@ -110,6 +110,8 @@ public class Launcher extends Subsystem {
         mMasterTalon.set(0);
         mRightLauncherSpark.set(0);
         mLeftLauncherSpark.set(0);
+        mMasterTalon.set(ControlMode.PercentOutput, 0);
+        mSlaveTalon.set(ControlMode.PercentOutput, 0);
 
         switch (mWantedState) {
             case ALIGN:
@@ -124,6 +126,7 @@ public class Launcher extends Subsystem {
         mLeftLauncherSpark.set(mSparkRPM);
         mRightLauncherSpark.set(-mSparkRPM);
         mMasterTalon.set(ControlMode.Velocity, mLaunchRPM);
+        mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
 
         if (mMasterTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
             if (mThresholdStart == Double.POSITIVE_INFINITY) {
@@ -155,6 +158,7 @@ public class Launcher extends Subsystem {
         mLeftLauncherSpark.set(mSparkRPM);
         mRightLauncherSpark.set(-mSparkRPM);
         mMasterTalon.set(ControlMode.Velocity, mLaunchRPM);
+        mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
         mLauncherSolenoid.set(DoubleSolenoid.Value.kReverse);
 
         System.out.println(mMasterTalon.getSelectedSensorVelocity(0));

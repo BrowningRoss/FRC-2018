@@ -82,10 +82,10 @@ public class LED extends Subsystem {
         }
     };
     public LED() {
-        mLED = new DigitalOutput(Constants.kGreenLEDId);
+        mLED = new DigitalOutput(Constants.kAllianceBlueLEDId);
         mLED.set(false);
 
-        mRangeLED = new DigitalOutput(Constants.kRangeLEDId);
+        mRangeLED = new DigitalOutput(Constants.kAllianceRedLEDId);
         setRangeLEDOff();
 
         // Force a relay change.

@@ -62,7 +62,7 @@ public class Constants extends ConstantsBase {
     public static final int kArmRightSolenoidId = 4;    // PCM 0, Forward Channel 4, Reverse Channel 5
 
     // Launcher RPM Tuning
-    public static final double kLauncherRPM = 6133; // @TODO: Determine actual RPM
+    public static final double kLauncherRPM = 36000;
     public static final double kLauncherCoolDownTime = 1.0; // 1 Second to spool down after launch
     public static final double kLaunchTimeThreshold = 1.0; // 1 second to launch
 
@@ -97,29 +97,24 @@ public class Constants extends ConstantsBase {
     public static final double kDriveProxKd  = 0.030;
     public static final double kDriveProxKf  = 0;
     // PID gains for Launcher RPM Setpoint loop
-    public static final double kLauncherKp   = 0.01;
-    public static final double kLauncherKi   = 0.001;
+    public static final double kLauncherKp   = .05;
+    public static final double kLauncherKi   = 0.00;
     public static final double kLauncherKd   = 0.02;
-    public static final double kLauncherKf   = 0;
+    public static final double kLauncherKf   = 0.03;
     // PID gains for the Intake Arm Setpoint loop
-    public static final double kIntakeKp     = 1;
+    public static final double kIntakeKp     = .5;
     public static final double kIntakeKi     = 0.10;
-    public static final double kIntakeKd     = 2.0;
+    public static final double kIntakeKd     = .5;
     public static final double kIntakeKf     = 0;
 
     public static final double kLaunchProxSetpoint = 20;
 
-    public static double kTwistMaxOutput = 0.66;
-
-    // Solenoids
-    public static final int kShooterSolenoidId = 0; // PCM 0, Solenoid 0
-
-    // Analog Inputs
-    public static int kLEDOnId = 2;
+    public static final double kTwistMaxOutput = 0.66;
 
     // Digital Outputs
-    public static int kGreenLEDId = 9;
-    public static int kRangeLEDId = 8;
+    public static final int kAllianceBlueLEDId = 14;
+    public static final int kAllianceRedLEDId = 16;
+    public static final int kResetArduinoId  = 18;
 
 
     // Pose of the camera frame w.r.t. the robot frame
@@ -129,6 +124,11 @@ public class Constants extends ConstantsBase {
     public static double kCameraPitchAngleDegrees;
     public static double kCameraYawAngleDegrees;
     public static double kCameraDeadband;
+
+    // Pose of the Ultrasonic frame w.r.t. the robot frame
+    public static final double kUltrasonicXOffsetRight = 9.75;
+    public static final double kUltrasonicXOffsetLeft  = 21.0;
+    public static final double kUltrasonicYOffset      = 4.0;
 
     // Raspberry Pi Information
     public static final String kVisionIP                  = "10.61.33.6";
