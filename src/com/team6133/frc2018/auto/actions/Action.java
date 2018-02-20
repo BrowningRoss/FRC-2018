@@ -1,5 +1,7 @@
 package com.team6133.frc2018.auto.actions;
 
+import edu.wpi.first.wpilibj.DriverStation;
+
 /**
  * Action Interface, an interface that describes an iterative action. It is run
  * by an autonomous action, called by the method runAction in AutoModeBase (or
@@ -9,6 +11,7 @@ package com.team6133.frc2018.auto.actions;
  */
 public interface Action {
 
+    DriverStation.Alliance allianceColor = DriverStation.Alliance.Invalid;
     /**
      * Returns whether or not the code has finished execution. When implementing
      * this interface, this method is used by the runAction method every cycle

@@ -40,9 +40,10 @@ public class Drive extends Subsystem {
     private final MecanumDrive mMecanumDrive;
     // Hardware
     private final WPI_TalonSRX mFrontLeft, mFrontRight, mRearLeft, mRearRight;
-    private final NavXmicro mNavXBoard;
-    private final UltrasonicSensor mFrontSensor;
-    public final IRSensor mLeftSensor, mRightSensor;
+    private NavXmicro mNavXBoard;
+    public final UltrasonicSensor mFrontSensor;
+    private IRSensor mLeftSensor;
+    private IRSensor mRightSensor;
     // Logging
     //???private final ReflectingCSVWriter<PathFollower.DebugOutput> mCSVWriter;
     // Control states
@@ -76,6 +77,7 @@ public class Drive extends Subsystem {
         public void onLoop(double timestamp) {
             synchronized (Drive.this) {
                 mTimeInState = Timer.getFPGATimestamp() - mCurrentStateStartTime;
+                mFrontSensor.update();
                 switch (mDriveControlState) {
                     case OPEN_LOOP:
                         return;
@@ -88,7 +90,7 @@ public class Drive extends Subsystem {
                         return;
                     case POLAR_DRIVE:
                         return;
-                    case AUTON_POLAR:
+                    case AUTON_PATH:
                         mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
                         return;
                     default:
@@ -123,9 +125,11 @@ public class Drive extends Subsystem {
         mPIDTwist.setInputRange(-180.0, 180.0);
         mPIDTwist.setOutputRange(-Constants.kTwistMaxOutput, Constants.kTwistMaxOutput);
         mPIDTwist.setContinuous();
-        mPIDTwist.setDeadband(0.02);
+        mPIDTwist.setDeadband(.25);
 
-        mPIDProxFront.setDeadband(0.02);
+
+
+        mPIDProxFront.setDeadband(1.5);
         mPIDProxFront.setOutputRange(-1.0, 1.0);
         mPIDProxFront.setInputRange(0.1, 545);
 
@@ -139,6 +143,7 @@ public class Drive extends Subsystem {
 
         // Initialize the Mecanum Drive
         mMecanumDrive = new MecanumDrive(mFrontLeft, mRearLeft, mFrontRight, mRearRight);
+        mMecanumDrive.setSafetyEnabled(false);
         mDriveSignal = DriveSignal.NEUTRAL;
         mAutonTimedBoolean = new TimeDelayedBoolean();
         setOpenLoop();
@@ -227,7 +232,7 @@ public class Drive extends Subsystem {
         //---double pidTwist = DriveHelper.throttleTwist(kP * dx);
 
         try {
-            mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+            mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), -mPIDTwist.get(), getGyroAngle().getDegrees());
         } catch (Throwable t) {
             mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mDriveSignal.getTwist());
             throw t;
@@ -268,9 +273,9 @@ public class Drive extends Subsystem {
     public void updateAlignLaunch() {
         try {
             if (mTimeInState > mThresholdTime) {
-                mMecanumDrive.driveCartesian(mPIDProxFront.get(), mDriveSignal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+                mMecanumDrive.driveCartesian(mPIDProxFront.get(), mDriveSignal.getY(), -mPIDTwist.get(), getGyroAngle().getDegrees());
             } else {
-                mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+                mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), -mPIDTwist.get(), getGyroAngle().getDegrees());
             }
         } catch (Throwable t) {
             mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), mDriveSignal.getTwist());
@@ -294,12 +299,13 @@ public class Drive extends Subsystem {
         } catch (Throwable t) {
             throw t;
         }
+        Timer.delay(0.005);
     }
 
     public synchronized void setAutonPath(AutonPathSettings pathSetting, double timeStamp) {
-        mTargetHeading         = pathSetting.getOrientation();
+        mTargetHeading         = pathSetting.getHeading();
         mPathSetting           = pathSetting;
-        mDriveControlState     = DriveControlState.AUTON_POLAR;
+        mDriveControlState     = DriveControlState.AUTON_PATH;
         mCurrentStateStartTime = timeStamp;
         mTimeInState           = 0.0;
 
@@ -309,8 +315,7 @@ public class Drive extends Subsystem {
         // Force a reset of the time delayed boolean
         mAutonTimedBoolean.update(false, mPathSetting.getTimeout());
         mAutonTimedBoolean.update(true, mPathSetting.getTimeout());
-
-        mMecanumDrive.drivePolar(.42, mPathSetting.getHeading().getDegrees(),0);
+        Timer.delay(0.005);
     }
 
     /**
@@ -319,13 +324,26 @@ public class Drive extends Subsystem {
      */
     public boolean updateAutonPath() {
         boolean sensor;
-        mMecanumDrive.drivePolar(.6, mPathSetting.getHeading().getDegrees(), mPIDTwist.get());
+        double magX = mPathSetting.getMagnitudeX(), magY = mPathSetting.getMagnitudeY();
+        if (Math.abs(mPIDTwist.get()) > .2) {
+            magX = 0;
+            magY = 0;
+        }
         if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.LeftIRPD) {
-            sensor = mPathSetting.getSensorTarget().invert != mLeftSensor.seesWall();
+            sensor = mPathSetting.getInvertIRPD() != mLeftSensor.seesWall();
+            //mMecanumDrive.driveCartesian(mPathSetting.getMagnitudeX(), mPathSetting.getMagnitudeY(), mPIDTwist.get(), getGyroAngle().getDegrees());
+            mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
         } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.RightIRPD) {
-            sensor = mRightSensor.seesWall() != mPathSetting.getSensorTarget().invert;
+            sensor = mRightSensor.seesWall() != mPathSetting.getInvertIRPD();
+            mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
         } else {
             sensor = Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 1.5;
+            if (Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 15) {
+                // If we are < 15" from the target, slow down to 50% magnitude
+                mMecanumDrive.driveCartesian(0.5 * magX, 0.5* magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
+            } else {
+                mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
+            }
         }
         return mAutonTimedBoolean.update(true, mPathSetting.getTimeout()) && sensor;
     }
@@ -338,12 +356,14 @@ public class Drive extends Subsystem {
 
     @Override
     public void outputToSmartDashboard() {
-        SmartDashboard.putNumber("front left voltage (V)", mFrontLeft.getMotorOutputVoltage());
-        SmartDashboard.putNumber("front right voltage (V)", mFrontRight.getMotorOutputVoltage());
-        SmartDashboard.putNumber("rear left voltage (V)", mRearLeft.getMotorOutputVoltage());
-        SmartDashboard.putNumber("rear right voltage (V)", mRearRight.getMotorOutputVoltage());
-
-        SmartDashboard.putNumber("gyro vel", getGyroVelocityDegreesPerSec());
+        //SmartDashboard.putNumber("front left voltage (V)", mFrontLeft.getMotorOutputVoltage());
+        //SmartDashboard.putNumber("front right voltage (V)", mFrontRight.getMotorOutputVoltage());
+        //SmartDashboard.putNumber("rear left voltage (V)", mRearLeft.getMotorOutputVoltage());
+        //SmartDashboard.putNumber("rear right voltage (V)", mRearRight.getMotorOutputVoltage());
+        SmartDashboard.putNumber("Ultrasonic", mFrontSensor.getAverageDistance());
+        SmartDashboard.putBoolean("Left IRPD", mLeftSensor.seesWall());
+        SmartDashboard.putBoolean("Right IRPD", mRightSensor.seesWall());
+        //SmartDashboard.putNumber("gyro vel", getGyroVelocityDegreesPerSec());
         SmartDashboard.putNumber("gyro deg", getGyroAngle().getDegrees());
     }
 
@@ -373,6 +393,23 @@ public class Drive extends Subsystem {
         return mTargetHeading.getDegrees();
     }
 
+    public void setVoltageLeftIRPD(double range) {
+        double inverse_cm = 0.3937 / range;
+        double voltage = 1.125 + 137.5 * inverse_cm;
+        mLeftSensor.setLimitsVoltage(0.95 * voltage, voltage);
+    }
+
+    public void setVoltageRightIRPD(double range) {
+        double inverse_cm = 0.3937 / range;
+        double voltage = 1.125 + 137.5 * inverse_cm;
+        mRightSensor.setLimitsVoltage(0.95 * voltage, voltage);
+    }
+
+    public void setVoltageBothIRPD(double range) {
+        setVoltageLeftIRPD(range);
+        setVoltageRightIRPD(range);
+    }
+
 
     // The robot drivetrain's various states.
     public enum DriveControlState {
@@ -380,8 +417,7 @@ public class Drive extends Subsystem {
         HEADING_SETPOINT,   // heading PID control
         LAUNCH_SETPOINT,    // launch PID control
         POLAR_DRIVE,        // not used - here just for testing
-        AUTON_POLAR,
-        AUTON_CARTESIAN
+        AUTON_PATH,
     }
 
     public boolean checkSystem() {

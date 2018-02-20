@@ -9,6 +9,8 @@ import com.team6133.frc2018.auto.actions.Action;
 public abstract class AutoModeBase {
     protected double m_update_rate = 1.0 / 50.0;
     protected boolean m_active = false;
+    protected double FACE_LEFT = -90;
+    protected double FACE_RIGHT = 90;
 
     protected abstract void routine() throws AutoModeEndedException;
 

@@ -8,6 +8,7 @@ import com.team6133.lib.util.CrashTracker;
 import com.team6133.lib.util.DriveHelper;
 import com.team6133.lib.util.DriveSignal;
 import com.team6133.lib.util.drivers.RevDigitBoard;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -158,6 +159,7 @@ public class Robot extends IterativeRobot {
             mEnabledLooper.start();
             // ~!@mSuperstructure.reloadConstants();
             mAutoModeExecuter = new AutoModeExecuter();
+            mAutoModeExecuter.setAutoMode(AutoModeSelector.getSelectedAutoMode());
             mAutoModeExecuter.start();
 
         } catch (Throwable t) {
@@ -270,41 +272,43 @@ public class Robot extends IterativeRobot {
                 mLauncher.setWantedState(Launcher.WantedState.ALIGN);
             }
 
-            if (intakeFloor && !_intakeFloor) {
-                System.out.println("Intake Floor Button Pressed");
-                if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
+            if (intakeFloor) {
+                /*if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
                     mCubeState = RobotCubeState.INTAKE_FLOOR;
                     if (mIntake.hasCube())
-                        mIntake.overrideHasCube();
+                       mIntake.overrideHasCube();
                 } else {
-                    mCubeState = RobotCubeState.INTAKE_FLOOR;
+                    mCubeState = RobotCubeState.HOLDING;
                 }
+                if (mIntake.hasCube())
+                    mIntake.overrideHasCube();*/
+                mCubeState = RobotCubeState.INTAKE_FLOOR;
+            } else if (!intakeFloor && _intakeFloor) {
+                mIntake.setWantedState(Intake.WantedState.INTAKE_DONE);
+                mCubeState = RobotCubeState.HOLDING;
             } else if (intakeStack && !_intakeStack) {
                 if (mCubeState != RobotCubeState.INTAKE_STACK) {
                     mCubeState = RobotCubeState.INTAKE_STACK;
-                    if (mIntake.hasCube())
-                        mIntake.overrideHasCube();
                 } else {
-                    mCubeState = RobotCubeState.INTAKE_STACK;
+                    mCubeState = RobotCubeState.HOLDING;
                 }
+                if (mIntake.hasCube())
+                    mIntake.overrideHasCube();
             } else if (exhaustExchange && !_exhaustExchange) {
                 mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
-                if (!mIntake.hasCube())
-                    mIntake.overrideHasCube();
+                mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
             } else if (!exhaustExchange && _exhaustExchange) {
                 mIntake.setWantsExhaust();
                 wantsExhaust = true;
             } else if (exhaustSwitch && !_exhaustSwitch) {
                 mCubeState = RobotCubeState.EXHAUST_SWITCH;
-                if (!mIntake.hasCube())
-                    mIntake.overrideHasCube();
+                mIntake.setWantedState(Intake.WantedState.SCORE_SWITCH);
             } else if (!exhaustSwitch && _exhaustSwitch) {
                 mIntake.setWantsExhaust();
                 wantsExhaust = true;
             } else if (loadLauncher && !_loadLauncher) {
                 mCubeState = RobotCubeState.LOAD_SHOOTER;
-                if (!mIntake.hasCube())
-                    mIntake.overrideHasCube();
+                mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
             }
             /*else {
                 mIntake.setWantedState(Intake.WantedState.HOLDING);
@@ -325,13 +329,7 @@ public class Robot extends IterativeRobot {
 
             switch (mCubeState) {
                 case INTAKE_FLOOR:
-                    if (mIntake.hasCube()) {
-                        mIntake.setWantedState(Intake.WantedState.HOLDING);
-                        mCubeState = RobotCubeState.HOLDING;
-                    } else {
-                        mIntake.setWantedState(Intake.WantedState.ACQUIRE_FLOOR);
-                        System.out.println(Constants.kGameSpecificMessage);
-                    }
+                    mIntake.setWantedState(Intake.WantedState.ACQUIRE_FLOOR);
                     break;
                 case INTAKE_STACK:
                     if (mIntake.hasCube()) {
@@ -342,34 +340,20 @@ public class Robot extends IterativeRobot {
                     }
                     break;
                 case EXHAUST_SWITCH:
-                    if (!mIntake.hasCube()) {
-                        mIntake.setWantedState(Intake.WantedState.HOLDING);
+
+                    if (mIntake.getWantedState() != Intake.WantedState.SCORE_SWITCH) {
                         mCubeState = RobotCubeState.HOLDING;
-                    } else {
-                        mIntake.setWantedState(Intake.WantedState.SCORE_SWITCH);
-                        if (wantsExhaust) {
-                            mCubeState = RobotCubeState.HOLDING;
-                        }
                     }
                     break;
                 case EXHAUST_EXCHANGE:
-                    if (!mIntake.hasCube()) {
-                        mIntake.setWantedState(Intake.WantedState.HOLDING);
+
+                    if (mIntake.getWantedState() != Intake.WantedState.SCORE_EXCHANGE) {
                         mCubeState = RobotCubeState.HOLDING;
-                    } else {
-                        mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
-                        if (wantsExhaust) {
-                            mCubeState = RobotCubeState.HOLDING;
-                        }
                     }
                     break;
                 case LOAD_SHOOTER:
-                    if (!mIntake.hasCube()) {
-                        mIntake.setWantedState(Intake.WantedState.HOLDING);
-                        mCubeState = RobotCubeState.HOLDING;
-                    } else {
-                        mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
-                    }
+
+
                     break;
                 default:
                     mIntake.setWantedState(Intake.WantedState.HOLDING);
@@ -478,12 +462,8 @@ public class Robot extends IterativeRobot {
     @Override
     public void testPeriodic() {
         allPeriodic();
-        mLauncher.mMasterTalon.set(ControlMode.Velocity, 36000);
-        mLauncher.mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
-        mLauncher.mLeftLauncherSpark.set(-1);
-        mLauncher.mRightLauncherSpark.set(1);
-        //mLauncher.mMasterTalon.set(ControlMode.PercentOutput, 1);
-        System.out.println(mLauncher.mMasterTalon.getSelectedSensorVelocity(0));
+        mLauncher.mLeftLauncherSpark.set(1);
+        mLauncher.mRightLauncherSpark.set(-1);
     }
 
     /**

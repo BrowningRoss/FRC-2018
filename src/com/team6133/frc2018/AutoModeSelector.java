@@ -1,7 +1,10 @@
 package com.team6133.frc2018;
 
 import com.team6133.frc2018.auto.AutoModeBase;
+import com.team6133.frc2018.auto.modes.Option_StartCenter_EndScoreSwitchRight;
+import com.team6133.frc2018.auto.modes.Option_StartLeft_EndScoreLeftSwitch;
 import com.team6133.frc2018.auto.modes.StandStillMode;
+import com.team6133.frc2018.auto.modes.StartLeftEndLeftSwitch160Mode;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.json.simple.JSONArray;
@@ -18,10 +21,11 @@ public class AutoModeSelector {
     public static final String SELECTED_AUTO_MODE_DASHBOARD_KEY = "selected_auto_mode";
     //public static final String STARTING_POSITION_DASHBOARD_KEY = "starting_position";
     //public static final String SELECTED_STARTING_POISITION_DASHBOARD_KEY = "selected_starting_position";
-    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Stand Still",
-            () -> new StandStillMode());
+    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Drive to Switch", () -> new StartLeftEndLeftSwitch160Mode());
     private static final AutoModeCreator[] mAllModes = {
-            new AutoModeCreator("Standstill", () -> new StandStillMode()),};
+            new AutoModeCreator("Standstill", () -> new StandStillMode()),
+            new AutoModeCreator("Drive to Switch", () -> new Option_StartLeft_EndScoreLeftSwitch()),
+            new AutoModeCreator("Center -> Score Switch", () -> new Option_StartCenter_EndScoreSwitchRight())};
     /*private static final StartingPositionCreator[] mAllPositions = {
             new StartingPositionCreator("Left", StartingPosition.LEFT),
             new StartingPositionCreator("Center", StartingPosition.CENTER),

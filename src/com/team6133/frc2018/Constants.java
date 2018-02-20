@@ -57,12 +57,12 @@ public class Constants extends ConstantsBase {
     public static final int kIRPDLeftPort       = 2;
 
     // Solenoid IDs
-    public static final int kLauncherSolenoidId = 0;    // PCM 0, Forward Channel 0, Reverse Channel 1
-    public static final int kArmLeftSolenoidId  = 2;    // PCM 0, Forward Channel 2, Reverse Channel 3
-    public static final int kArmRightSolenoidId = 4;    // PCM 0, Forward Channel 4, Reverse Channel 5
+    public static final int kLauncherSolenoidId = 2;    // PCM 0, Forward Channel 4, Reverse Channel 5
+    //public static final int kArmLeftSolenoidId  = 2;    // PCM 0, Forward Channel 2, Reverse Channel 3
+    //public static final int kArmRightSolenoidId = 0;    // PCM 0, Forward Channel 0, Reverse Channel 1
 
     // Launcher RPM Tuning
-    public static final double kLauncherRPM = 36000;
+    public static final double kLauncherRPM = 6133;//36000;
     public static final double kLauncherCoolDownTime = 1.0; // 1 Second to spool down after launch
     public static final double kLaunchTimeThreshold = 1.0; // 1 second to launch
 
@@ -87,9 +87,9 @@ public class Constants extends ConstantsBase {
 
     /* CONTROL LOOP GAINS */
     // PID gains for drive Heading Setpoint loop
-    public static final double kDriveTwistKp = 0.0175;
-    public static final double kDriveTwistKi = 0.0015;
-    public static final double kDriveTwistKd = 0.05;
+    public static final double kDriveTwistKp = 0.025;
+    public static final double kDriveTwistKi = 0.0025;
+    public static final double kDriveTwistKd = 0.002;
     public static final double kDriveTwistKf = 0;
     // PID gains for drive Proximity Setpoint loop
     public static final double kDriveProxKp  = 0.015;
@@ -102,10 +102,10 @@ public class Constants extends ConstantsBase {
     public static final double kLauncherKd   = 0.02;
     public static final double kLauncherKf   = 0.03;
     // PID gains for the Intake Arm Setpoint loop
-    public static final double kIntakeKp     = .5;
-    public static final double kIntakeKi     = 0.10;
-    public static final double kIntakeKd     = .5;
-    public static final double kIntakeKf     = 0;
+    public static final double kIntakeKp     = 1.5;
+    public static final double kIntakeKi     = 0.2;
+    public static final double kIntakeKd     = 0.05;
+    public static final double kIntakeKf     = 0.06;
 
     public static final double kLaunchProxSetpoint = 20;
 

@@ -17,10 +17,6 @@ public class SensorTarget {
         invert = i;
     }
 
-    public static final SensorTarget leftIRPD = new SensorTarget(Sensor.LeftIRPD, 0, false);
-    public static final SensorTarget leftIRPDinvert = new SensorTarget(Sensor.LeftIRPD, 0, true);
-    public static final SensorTarget rightIRPD = new SensorTarget(Sensor.RightIRPD, 0, false);
-    public static final SensorTarget rightIRPDinvert = new SensorTarget(Sensor.RightIRPD, 0, true);
-    public static final SensorTarget ultraScale = new SensorTarget(Sensor.Ultra, Constants.kLaunchProxSetpoint, false);
+    public static final SensorTarget ultraScaleLaunchSetpoint = new SensorTarget(Sensor.Ultra, Constants.kLaunchProxSetpoint, false);
 }
 

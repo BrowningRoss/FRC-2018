@@ -38,9 +38,7 @@ public class ControlBoard implements ControlBoardInterface {
     }
 
     @Override
-    public double getThrottleY() {
-        return -mThrottleStick.getY();
-    }
+    public double getThrottleY() { return -mThrottleStick.getY(); }
 
     @Override
     public double getTwist() {
@@ -50,12 +48,12 @@ public class ControlBoard implements ControlBoardInterface {
     // OPERATOR CONTROLS
     @Override
     public boolean getRotateLeftButton() {
-        return false;
+        return mThrottleStick.getRawButton(5);
     }
 
     @Override
     public boolean getRotateRightButton() {
-        return false;
+        return mThrottleStick.getRawButton(6);
     }
 
     @Override

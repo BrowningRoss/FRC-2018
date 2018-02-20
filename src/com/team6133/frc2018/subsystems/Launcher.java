@@ -68,7 +68,7 @@ public class Launcher extends Subsystem {
     private boolean mWantsLaunch = false;
 
     private Launcher() {
-        compressor.setClosedLoopControl(false);
+        compressor.setClosedLoopControl(true);
 
         mLeftLauncherSpark  = new Spark(Constants.kLauncherLeftPWM  );
         mRightLauncherSpark = new Spark(Constants.kLauncherRightPWM );
@@ -161,7 +161,6 @@ public class Launcher extends Subsystem {
         mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
         mLauncherSolenoid.set(DoubleSolenoid.Value.kReverse);
 
-        System.out.println(mMasterTalon.getSelectedSensorVelocity(0));
         if (mThresholdStart == Double.POSITIVE_INFINITY) {
             mThresholdStart = timeInState;
         } else {

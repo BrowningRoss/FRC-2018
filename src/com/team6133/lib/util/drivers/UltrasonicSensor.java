@@ -19,13 +19,13 @@ public class UltrasonicSensor extends Ultrasonic {
         cache.add(getRangeInches());
     }
 
-    public void update() {
+    public synchronized void update() {
         cache.add(getRangeInches());
         if (cache.size() > kCacheSize)
             cache.removeFirst();
     }
 
-    public double getAverageDistance() {
+    public synchronized double getAverageDistance() {
         double total = 0;
         for (Double d : cache) {
             total += d;
