@@ -62,13 +62,17 @@ public class Constants extends ConstantsBase {
     //public static final int kArmRightSolenoidId = 0;    // PCM 0, Forward Channel 0, Reverse Channel 1
 
     // Launcher RPM Tuning
-    public static final double kLauncherRPM = 6133;//36000;
+    public static final double kLauncherRPM = 36000;
+    public static final double kLauncherSwitchRPM = 6133;
     public static final double kLauncherCoolDownTime = 1.0; // 1 Second to spool down after launch
     public static final double kLaunchTimeThreshold = 1.0; // 1 second to launch
 
     // IRPD Voltage Tuning
     public static final double MAX_TRIGGER_VOLTAGE = 2.7;
     public static final double MIN_TRIGGER_VOLTAGE = 2.5;
+
+    // Ultrasonic Setpoint Tuning
+    public static final double SWITCH_SIDE_DISTANCE_INCHES = 50;
 
 
     /* ROBOT PHYSICAL CONSTANTS */

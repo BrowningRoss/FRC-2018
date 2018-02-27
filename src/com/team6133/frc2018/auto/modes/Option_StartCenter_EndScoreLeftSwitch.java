@@ -10,13 +10,13 @@ import edu.wpi.first.wpilibj.Timer;
 
 import java.util.Arrays;
 
-public class Option_StartCenter_EndScoreSwitchRight extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 30, 45, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 45, true), .5);
+public class Option_StartCenter_EndScoreLeftSwitch extends AutoModeBase {
+    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, -55, 45, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 45, true), 1);
     AutonPathSettings path2 = new AutonPathSettings(180, 0, 55, new SensorTarget(SensorTarget.Sensor.Ultra, 96, false), 1);
 
     @Override
     protected void routine() throws AutoModeEndedException {
-        System.out.println("Option_StartCenter_EndScoreSwitchRight()");
+        System.out.println("Option_StartCenter_EndScoreLeftSwitch()");
         double start = Timer.getFPGATimestamp();
         runAction(new ResetStartingPoseAction(Rotation2d.fromDegrees(FACE_LEFT)));
         runAction(new DrivePathAction(path1));

@@ -97,6 +97,7 @@ public class Robot extends IterativeRobot {
     private boolean _exhaustSwitch       = false;
     private boolean _loadLauncher        = false;
     private boolean _wantsCube           = false;
+    private boolean _climb               = false;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -272,6 +273,12 @@ public class Robot extends IterativeRobot {
                 mLauncher.setWantedState(Launcher.WantedState.ALIGN);
             }
 
+            if (!exhaustSwitch && _exhaustSwitch) {
+                mLauncher.setWantsLaunch();
+            } else if (exhaustSwitch && !_exhaustSwitch) {
+                mLauncher.setWantedState(Launcher.WantedState.ALIGN_SWITCH);
+            }
+
             if (intakeFloor) {
                 /*if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
                     mCubeState = RobotCubeState.INTAKE_FLOOR;
@@ -283,7 +290,7 @@ public class Robot extends IterativeRobot {
                 if (mIntake.hasCube())
                     mIntake.overrideHasCube();*/
                 mCubeState = RobotCubeState.INTAKE_FLOOR;
-            } else if (!intakeFloor && _intakeFloor) {
+            } else if (_intakeFloor) {
                 mIntake.setWantedState(Intake.WantedState.INTAKE_DONE);
                 mCubeState = RobotCubeState.HOLDING;
             } else if (intakeStack && !_intakeStack) {
@@ -300,12 +307,6 @@ public class Robot extends IterativeRobot {
             } else if (!exhaustExchange && _exhaustExchange) {
                 mIntake.setWantsExhaust();
                 wantsExhaust = true;
-            } else if (exhaustSwitch && !_exhaustSwitch) {
-                mCubeState = RobotCubeState.EXHAUST_SWITCH;
-                mIntake.setWantedState(Intake.WantedState.SCORE_SWITCH);
-            } else if (!exhaustSwitch && _exhaustSwitch) {
-                mIntake.setWantsExhaust();
-                wantsExhaust = true;
             } else if (loadLauncher && !_loadLauncher) {
                 mCubeState = RobotCubeState.LOAD_SHOOTER;
                 mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
@@ -316,12 +317,18 @@ public class Robot extends IterativeRobot {
             }*/
 
             // Set the wanted state of the Climber
-            if (climb) {
+            if (!climb && _climb) {
+                mClimber.setWantedState(Climber.WantedState.IDLE);
+                mCubeState = RobotCubeState.HOLDING;
+            } else if (climb) {
                 mClimber.setWantedState(Climber.WantedState.CLIMB);
+                mCubeState = RobotCubeState.INTAKE_FLOOR;
             } else if (retractClimber) {
                 mClimber.setWantedState(Climber.WantedState.RETRACT);
+                mCubeState = RobotCubeState.INTAKE_FLOOR;
             } else if (extendClimber) {
                 mClimber.setWantedState(Climber.WantedState.EXTEND);
+                mCubeState = RobotCubeState.INTAKE_FLOOR;
             } else {
                 mClimber.setWantedState(Climber.WantedState.IDLE);
             }
@@ -369,6 +376,7 @@ public class Robot extends IterativeRobot {
             _wantsAim        = wants_aim_button;
             _wantsLaunch     = wantsLaunchButton;
             _wantsCube       = wantsCube;
+            _climb           = climb;
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;

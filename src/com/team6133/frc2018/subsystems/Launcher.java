@@ -46,13 +46,17 @@ public class Launcher extends Subsystem {
         ALIGNING,
         LAUNCHING,
         SPIN_DOWN,
+        ALIGNING_SWITCH,
+        LAUNCHING_SWITCH
     }
 
     // Desired function from user
     public enum WantedState {
         IDLE,
         LAUNCH,
-        ALIGN
+        ALIGN,
+        LAUNCH_SWITCH,
+        ALIGN_SWITCH
     }
 
     private SystemState mSystemState = SystemState.IDLE;
@@ -117,6 +121,9 @@ public class Launcher extends Subsystem {
             case ALIGN:
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 return SystemState.ALIGNING;
+            case ALIGN_SWITCH:
+                mThresholdStart = Double.POSITIVE_INFINITY;
+                return SystemState.ALIGNING_SWITCH;
             default:
                 return SystemState.IDLE;
         }
@@ -154,6 +161,43 @@ public class Launcher extends Subsystem {
         }
     }
 
+    private SystemState handleAlignSwitch(double timeInState) {
+        mLeftLauncherSpark.set(mSparkRPM);
+        mRightLauncherSpark.set(-mSparkRPM);
+        mMasterTalon.set(ControlMode.Velocity, Constants.kLauncherSwitchRPM);
+        mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
+
+        if (mMasterTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
+            if (mThresholdStart == Double.POSITIVE_INFINITY) {
+                mThresholdStart = timeInState;
+            } else {
+                if (timeInState - mThresholdStart > kLaunchDelay && mWantsLaunch) {
+                    mThresholdStart = Double.POSITIVE_INFINITY;
+                    mWantedState = WantedState.LAUNCH_SWITCH;
+                    return SystemState.LAUNCHING_SWITCH;
+                }
+            }
+        } else {
+            mThresholdStart = Double.POSITIVE_INFINITY;
+        }
+        switch (mWantedState) {
+            case ALIGN:
+                return SystemState.ALIGNING;
+            case ALIGN_SWITCH:
+                return SystemState.ALIGNING_SWITCH;
+            case LAUNCH_SWITCH:
+                mThresholdStart = Double.POSITIVE_INFINITY;
+                return SystemState.LAUNCHING_SWITCH;
+            case IDLE:
+                return SystemState.IDLE;
+            case LAUNCH:
+                mThresholdStart = Double.POSITIVE_INFINITY;
+                return SystemState.LAUNCHING;
+            default:
+                return SystemState.ALIGNING_SWITCH;
+        }
+    }
+
     private SystemState handleLaunch(double timeInState) {
         mLeftLauncherSpark.set(mSparkRPM);
         mRightLauncherSpark.set(-mSparkRPM);
@@ -171,6 +215,25 @@ public class Launcher extends Subsystem {
             }
         }
         return SystemState.LAUNCHING;
+    }
+
+    private SystemState handleLaunchSwitch(double timeInState) {
+        mLeftLauncherSpark.set(mSparkRPM);
+        mRightLauncherSpark.set(-mSparkRPM);
+        mMasterTalon.set(ControlMode.Velocity, Constants.kLauncherSwitchRPM);
+        mSlaveTalon.set(ControlMode.Follower, Constants.kLauncherMasterId);
+        mLauncherSolenoid.set(DoubleSolenoid.Value.kReverse);
+
+        if (mThresholdStart == Double.POSITIVE_INFINITY) {
+            mThresholdStart = timeInState;
+        } else {
+            if (timeInState - mThresholdStart > kLaunchTime) {
+                mThresholdStart = Double.POSITIVE_INFINITY;
+                mWantsLaunch = false;
+                return SystemState.SPIN_DOWN;
+            }
+        }
+        return SystemState.LAUNCHING_SWITCH;
     }
 
     private SystemState handleSpinDown(double timeInState) {
@@ -194,9 +257,10 @@ public class Launcher extends Subsystem {
 
     @Override
     public void stop() {
-        mMasterTalon.set(0);
+        mMasterTalon.set(ControlMode.PercentOutput, 0);
         mRightLauncherSpark.set(0);
         mLeftLauncherSpark.set(0);
+        mSlaveTalon.set(ControlMode.PercentOutput, 0);
         mSystemState = SystemState.IDLE;
     }
 
@@ -233,6 +297,12 @@ public class Launcher extends Subsystem {
                             break;
                         case SPIN_DOWN:
                             newState = handleSpinDown(timeInState);
+                            break;
+                        case ALIGNING_SWITCH:
+                            newState = handleAlignSwitch(timeInState);
+                            break;
+                        case LAUNCHING_SWITCH:
+                            newState = handleLaunchSwitch(timeInState);
                             break;
                         default:
                             newState = handleIdle(timeInState);

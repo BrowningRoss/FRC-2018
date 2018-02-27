@@ -6,15 +6,20 @@ import com.team6133.frc2018.auto.AutonPathSettings;
 import com.team6133.frc2018.auto.actions.DrivePathAction;
 import com.team6133.frc2018.auto.actions.ResetStartingPoseAction;
 import com.team6133.frc2018.auto.actions.WaitAction;
+import com.team6133.lib.util.SensorTarget;
 import com.team6133.lib.util.math.Rotation2d;
 import edu.wpi.first.wpilibj.Timer;
 
-public class StartLeftEndLeftSwitch160Mode extends AutoModeBase {
+public class Option_StartLeft_EndLeftSwitchNoScoreMode extends AutoModeBase {
+    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 150, true), 0.5);
+
     @Override
     protected void routine() throws AutoModeEndedException {
+        System.out.println("Option_StartLeft_EndLeftSwitchNoScoreMode()");
         double start = Timer.getFPGATimestamp();
-        runAction(new ResetStartingPoseAction(Rotation2d.fromDegrees(90)));
-        runAction(new DrivePathAction(AutonPathSettings.START_LEFT_END_LSWITCH_160));
-        System.out.println("Path Left@160 Time:\t" + (Timer.getFPGATimestamp() - start));
+        runAction(new ResetStartingPoseAction(Rotation2d.fromDegrees(FACE_LEFT)));
+        runAction(new DrivePathAction(path1));
+        System.out.println("Path Time:\t" + (Timer.getFPGATimestamp() - start));
+        runAction(new WaitAction(15));
     }
 }

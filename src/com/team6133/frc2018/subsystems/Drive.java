@@ -315,7 +315,7 @@ public class Drive extends Subsystem {
         // Force a reset of the time delayed boolean
         mAutonTimedBoolean.update(false, mPathSetting.getTimeout());
         mAutonTimedBoolean.update(true, mPathSetting.getTimeout());
-        Timer.delay(0.005);
+        System.out.println("Gyro:\t"+ getGyroAngle().getDegrees() + "\tX-Mag:\t" + mPathSetting.getMagnitudeX() + "\tY-Mag:\t" + mPathSetting.getMagnitudeY());
     }
 
     /**
@@ -344,6 +344,9 @@ public class Drive extends Subsystem {
             } else {
                 mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
             }
+        }
+        if (mAutonTimedBoolean.update(true, mPathSetting.getTimeout()) && sensor) {
+            System.out.println("End Path Gyro:\t" + getGyroAngle().getDegrees());
         }
         return mAutonTimedBoolean.update(true, mPathSetting.getTimeout()) && sensor;
     }
