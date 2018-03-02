@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.jcabi:jcabi-ssh:1.6">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jcabi/jcabi-ssh/1.6/fa3ac9fc3f056d6897ea2d5832aa396ce3af18e3/jcabi-ssh-1.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jcabi/jcabi-ssh/1.6/5ecee9de5fada08cad28b3a36607f88923cd179e/jcabi-ssh-1.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

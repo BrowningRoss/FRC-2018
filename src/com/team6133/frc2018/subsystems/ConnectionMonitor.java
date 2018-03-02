@@ -43,23 +43,6 @@ public class ConnectionMonitor extends Subsystem {
 
             @Override
             public void onLoop(double timestamp) {
-                synchronized (ConnectionMonitor.this) {
-                    boolean has_connection = true;
-                    if (timestamp - mLastPacketTime > kConnectionTimeoutSec) {
-                        mLED.setWantedState(LED.WantedState.BLINK);
-                        has_connection = false;
-                    }
-
-                    if (mJustReconnected.update(has_connection)) {
-                        // Reconfigure blink if we are just connected.
-                        mLED.configureBlink(LED.kDefaultBlinkCount, LED.kDefaultBlinkDuration);
-                    }
-
-                    if (mJustDisconnected.update(!has_connection)) {
-                        // Reconfigure blink if we are just disconnected.
-                        mLED.configureBlink(LED.kDefaultBlinkCount, LED.kDefaultBlinkDuration * 2.0);
-                    }
-                }
             }
 
             @Override

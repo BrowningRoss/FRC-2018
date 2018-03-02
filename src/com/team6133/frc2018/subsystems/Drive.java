@@ -42,8 +42,8 @@ public class Drive extends Subsystem {
     private final WPI_TalonSRX mFrontLeft, mFrontRight, mRearLeft, mRearRight;
     private NavXmicro mNavXBoard;
     public final UltrasonicSensor mFrontSensor;
-    private IRSensor mLeftSensor;
-    private IRSensor mRightSensor;
+    public IRSensor mLeftSensor;
+    public IRSensor mRightSensor;
     // Logging
     //???private final ReflectingCSVWriter<PathFollower.DebugOutput> mCSVWriter;
     // Control states
@@ -77,7 +77,6 @@ public class Drive extends Subsystem {
         public void onLoop(double timestamp) {
             synchronized (Drive.this) {
                 mTimeInState = Timer.getFPGATimestamp() - mCurrentStateStartTime;
-                mFrontSensor.update();
                 switch (mDriveControlState) {
                     case OPEN_LOOP:
                         return;
@@ -85,12 +84,14 @@ public class Drive extends Subsystem {
                         mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
                         return;
                     case LAUNCH_SETPOINT:
+                        mFrontSensor.update();
                         mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
                         mPIDProxFront.calculate(mFrontSensor.getAverageDistance(), Constants.kLooperDt);
                         return;
                     case POLAR_DRIVE:
                         return;
                     case AUTON_PATH:
+                        mFrontSensor.update();
                         mPIDTwist.calculate(getGyroAngle().getDegrees(), Constants.kLooperDt);
                         return;
                     default:
@@ -336,14 +337,17 @@ public class Drive extends Subsystem {
         } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.RightIRPD) {
             sensor = mRightSensor.seesWall() != mPathSetting.getInvertIRPD();
             mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
-        } else {
-            sensor = Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 1.5;
+        } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.Ultra) {
+            sensor = Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 2;
             if (Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 15) {
                 // If we are < 15" from the target, slow down to 50% magnitude
                 mMecanumDrive.driveCartesian(0.5 * magX, 0.5* magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
             } else {
                 mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
             }
+        } else {
+            sensor = mPIDTwist.onTarget(1.5);
+            mMecanumDrive.driveCartesian(0,0, -mPIDTwist.get(), getGyroAngle().getDegrees());
         }
         if (mAutonTimedBoolean.update(true, mPathSetting.getTimeout()) && sensor) {
             System.out.println("End Path Gyro:\t" + getGyroAngle().getDegrees());
@@ -398,14 +402,18 @@ public class Drive extends Subsystem {
 
     public void setVoltageLeftIRPD(double range) {
         double inverse_cm = 0.3937 / range;
-        double voltage = 1.125 + 137.5 * inverse_cm;
-        mLeftSensor.setLimitsVoltage(0.95 * voltage, voltage);
+        double voltage_min = 1.125 + 137.5 * inverse_cm;
+        inverse_cm = 0.3937 / (range*.95);
+        double voltage_max = 1.125 + 137.5 * inverse_cm;
+        mLeftSensor.setLimitsVoltage(voltage_min, voltage_max);
     }
 
     public void setVoltageRightIRPD(double range) {
         double inverse_cm = 0.3937 / range;
-        double voltage = 1.125 + 137.5 * inverse_cm;
-        mRightSensor.setLimitsVoltage(0.95 * voltage, voltage);
+        double voltage_min = 1.125 + 137.5 * inverse_cm;
+        inverse_cm = 0.3937 / (range*.95);
+        double voltage_max = 1.125 + 137.5 * inverse_cm;
+        mRightSensor.setLimitsVoltage(voltage_min, voltage_max);
     }
 
     public void setVoltageBothIRPD(double range) {

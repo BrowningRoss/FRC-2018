@@ -37,6 +37,7 @@ dependencies {
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
     compile 'org.eclipse.jetty:jetty-spring:9.3.15.v20161220'
     compile 'gov.nist.math:jama:1.0.3'
+    compile 'com.jcabi:jcabi-ssh:1.6'
     compile openrio.powerup.matchData()
 }
 

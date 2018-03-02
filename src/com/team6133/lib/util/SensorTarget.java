@@ -8,7 +8,7 @@ public class SensorTarget {
     public boolean invert;
 
     public enum Sensor {
-        LeftIRPD, RightIRPD, Ultra
+        LeftIRPD, RightIRPD, Ultra, Gyro
     }
 
     public SensorTarget(Sensor s, double t, boolean i) {

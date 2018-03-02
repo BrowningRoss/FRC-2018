@@ -6,6 +6,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Timer;
@@ -74,7 +75,9 @@ public class Intake extends Subsystem {
     }
 
     private final WPI_TalonSRX mArmTalon;
-    public final Spark mLeftSpark, mRightSpark;
+    private final Spark mLeftSpark, mRightSpark;
+    private final DigitalInput mLimitSwitch;
+    private final LED mLED = LED.getInstance();
 
     private WantedState mWantedState;
     private SystemState mSystemState;
@@ -108,6 +111,8 @@ public class Intake extends Subsystem {
 
         mLeftSpark.set(0);
         mRightSpark.set(0);
+
+        mLimitSwitch = new DigitalInput(0);
 
         //mLeftSolenoid.set( DoubleSolenoid.Value.kOff);
         //mRightSolenoid.set(DoubleSolenoid.Value.kOff);
@@ -144,17 +149,22 @@ public class Intake extends Subsystem {
                 //mRightSolenoid.set(DoubleSolenoid.Value.kReverse);
                 mLeftSpark.set(kIntakeMotorSetpoint);
                 mRightSpark.set(-kIntakeMotorSetpoint);
+
+                if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold) {
+                    mLED.setWantedState(LED.WantedState.SIGNAL);
+                } else {
+                    mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
+                }
+
                 /*
                 if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold && !mHasCube) {
                     mHasCube = true;
                     mThresholdStart = timeInState;
                 } else if (!mHasCube) {
                     mThresholdStart = Double.POSITIVE_INFINITY;
-                    // @TODO: Led indicator
                 }
                 if (mHasCube) {
                     if (timeInState - mThresholdStart > kThresholdTime) {
-                        // @TODO: LED indicator
                         //mArmTalon.config_kP(0, Constants.kIntakeKp, 0);
                         mThresholdStart = Double.POSITIVE_INFINITY;
                         //if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold)
@@ -403,7 +413,20 @@ public class Intake extends Subsystem {
     }
 
     private SystemState handleStowing(double timeInState) {
-        mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
+        if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError && !mLimitSwitch.get()) {
+            mLeftSpark.set(kStowingMotorSetpoint);
+            mRightSpark.set(-kStowingMotorSetpoint);
+            mArmTalon.set(ControlMode.Position, -200);
+            return SystemState.STOWING;
+        } else if (!mLimitSwitch.get()) {
+            mLeftSpark.set(kStowingMotorSetpoint);
+            mRightSpark.set(-kStowingMotorSetpoint);
+            mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
+            return SystemState.STOWING;
+        } else {
+            mArmTalon.setSelectedSensorPosition(0, 0, 0);
+            mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
+        }
         //mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
         //mRightSolenoid.set(DoubleSolenoid.Value.kForward);
         if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
@@ -545,16 +568,8 @@ public class Intake extends Subsystem {
     }
     double max = 0;
     public boolean checkSystem() {
-        boolean failure = false;
-        int loop = 0;
-        mArmTalon.set(ControlMode.Position, kIntakeFloorCubeSetpoint);
-        mLeftSpark.set(kIntakeMotorSetpoint);
-        mRightSpark.set(-kIntakeMotorSetpoint);
+        boolean failure = mLimitSwitch.get();
 
-        Timer.delay(4);
-        mArmTalon.set(ControlMode.Position, kLoadShooterSetpoint);
-        mLeftSpark.set(0);
-        mRightSpark.set(0);
 
         return failure;
     }

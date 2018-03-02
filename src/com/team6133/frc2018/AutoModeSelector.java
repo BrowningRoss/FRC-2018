@@ -16,17 +16,19 @@ public class AutoModeSelector {
 
     public static final String AUTO_OPTIONS_DASHBOARD_KEY = "auto_options";
     public static final String SELECTED_AUTO_MODE_DASHBOARD_KEY = "selected_auto_mode";
-    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Start Left\t| L Scale > L Switch > R Switch", () -> new LEFT_PreferScale_EitherSwitch());
+    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Start Left | L Scale > L Switch > R Switch", () -> new LEFT_PreferScale_EitherSwitch());
     private static final AutoModeCreator[] mAllModes = {
-            new AutoModeCreator("Start Left\t| L Scale > L Switch > R Switch", () -> new LEFT_PreferScale_EitherSwitch()),
-            new AutoModeCreator("Start Left\t| L Scale > L Switch > Cross", () -> new LEFT_PreferScale()),
-            new AutoModeCreator("Start Left\t| L Switch > R Switch", () -> new LEFT_EitherSwitch_NoScale()),
-            new AutoModeCreator("Start Left\t| L Switch > L Scale > R Switch", () -> new LEFT_PreferLSwitch_LScale_RSwitch()),
-            new AutoModeCreator("Start Left\t| L Switch > L Scale > Cross", () -> new LEFT_PreferSwitch()),
-            new AutoModeCreator("Start Left\t| L Switch > Cross", () -> new LEFT_SwitchNoScale()),
-            new AutoModeCreator("Start Center\t| Score Switch NEAR Side", () -> new CENTER_ScoreSwitchNear()),
-            new AutoModeCreator("Start Center\t| Score Switch FAR Side", () -> new CENTER_ScoreSwitchFar()),
-            new AutoModeCreator("Start Right\t| R Scale > R Switch > Cross", () -> new RIGHT_PreferScale())
+            new AutoModeCreator("Start Left | L Scale > L Switch > R Switch", () -> new LEFT_PreferScale_EitherSwitch()),
+            new AutoModeCreator("Start Left | L Scale > L Switch > R Scale", () -> new LEFT_LScale_LSwitch_RScale()),
+            new AutoModeCreator("Start Left | L Scale > R Scale", () -> new LEFT_LScale_RScale()),
+            new AutoModeCreator("Start Left | L Scale > L Switch > Cross", () -> new LEFT_PreferScale()),
+            new AutoModeCreator("Start Left | L Switch > R Switch", () -> new LEFT_EitherSwitch_NoScale()),
+            new AutoModeCreator("Start Left | L Switch > L Scale > R Switch", () -> new LEFT_PreferLSwitch_LScale_RSwitch()),
+            new AutoModeCreator("Start Left | L Switch > L Scale > Cross", () -> new LEFT_PreferSwitch()),
+            new AutoModeCreator("Start Left | L Switch > Cross", () -> new LEFT_SwitchNoScale()),
+            new AutoModeCreator("Start Center | Score Switch NEAR Side", () -> new CENTER_ScoreSwitchNear()),
+            new AutoModeCreator("Start Center | Score Switch FAR Side", () -> new CENTER_ScoreSwitchFar()),
+            new AutoModeCreator("Start Right | R Scale > R Switch > Cross", () -> new RIGHT_PreferScale())
     };
 
     public static void initAutoModeSelector() {

@@ -143,7 +143,7 @@ public class Constants extends ConstantsBase {
     public static final String kDriverStationSubnetMask   = "255.0.0.0";
     public static final String kVisionSubnetMask          = "255.255.255.0";
     public static final int    kVisionPort                = 5800;
-    public static final int    kStreamingPort             = 554;
+    public static final int    kStreamingPort             = 1180;
                                                     // UDP/TCP 1180 - 1190: Camera Data
                                                     // TCP 1735: SmartDashboard
                                                     // UDP 1130: DS-to-Robot control data
