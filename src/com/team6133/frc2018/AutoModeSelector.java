@@ -28,7 +28,9 @@ public class AutoModeSelector {
             new AutoModeCreator("Start Left | L Switch > Cross", () -> new LEFT_SwitchNoScale()),
             new AutoModeCreator("Start Center | Score Switch NEAR Side", () -> new CENTER_ScoreSwitchNear()),
             new AutoModeCreator("Start Center | Score Switch FAR Side", () -> new CENTER_ScoreSwitchFar()),
-            new AutoModeCreator("Start Right | R Scale > R Switch > Cross", () -> new RIGHT_PreferScale())
+            new AutoModeCreator("Start Right | R Scale > R Switch > Cross", () -> new RIGHT_PreferScale()),
+            new AutoModeCreator("Only Cross", () -> new Option_StartLeft_EndLeftSwitchNoScoreMode()),
+            new AutoModeCreator("Test Path", ()-> new TestPathMode())
     };
 
     public static void initAutoModeSelector() {

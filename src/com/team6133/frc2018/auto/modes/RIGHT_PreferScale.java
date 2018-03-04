@@ -24,7 +24,7 @@ public class RIGHT_PreferScale extends AutoModeBase {
         } else {
             System.out.println(Constants.kGameSpecificMessage + "\t-> Starting Score Right Scale");
         }
-
+        child = determinedAutoMode;
         determinedAutoMode.run();
     }
 }

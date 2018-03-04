@@ -33,10 +33,10 @@ public class Climber extends Subsystem {
     private WantedState mWantedState;
     private SystemState mSystemState;
     private final Spark mWinchSpark, mPulleySpark;
-    private final PowerDistributionPanel mPDP;
+    //private final PowerDistributionPanel mPDP;
 
     private Climber() {
-        mPDP = Intake.getInstance().getPDP();
+        //mPDP = Intake.getInstance().getPDP();
         mPulleySpark = new Spark(Constants.kClimbPulleyPWM );
         mWinchSpark  = new Spark(Constants.kClimbWinchPWM  );
     }
@@ -105,7 +105,7 @@ public class Climber extends Subsystem {
 
     @Override
     public void outputToSmartDashboard() {
-        SmartDashboard.putNumber("Climber Winch Current", mPDP.getCurrent(3));
+        //SmartDashboard.putNumber("Climber Winch Current", mPDP.getCurrent(3));
     }
 
     @Override

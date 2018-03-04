@@ -34,11 +34,11 @@ public class ControlBoard implements ControlBoardInterface {
     // DRIVER CONTROLS
     @Override
     public double getThrottleX() {
-        return -mThrottleStick.getX();
+        return mThrottleStick.getX();
     }
 
     @Override
-    public double getThrottleY() { return -mThrottleStick.getY(); }
+    public double getThrottleY() { return mThrottleStick.getY(); }
 
     @Override
     public double getTwist() {

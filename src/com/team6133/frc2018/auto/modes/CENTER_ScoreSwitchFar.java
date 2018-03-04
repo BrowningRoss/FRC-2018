@@ -21,7 +21,7 @@ public class CENTER_ScoreSwitchFar extends AutoModeBase {
         } else {
             System.out.println(Constants.kGameSpecificMessage + "\t-> Starting Score Left Switch, Far Side");
         }
-
+        child = determinedAutoMode;
         determinedAutoMode.run();
     }
 }

@@ -18,6 +18,7 @@ public class TimeDelayedBoolean {
             t.start();
         }
         m_old = value;
+        //System.out.println("Timeout timer: "+t.get() + "\t||\t" + (value && t.get() >= timeout));
         return value && t.get() >= timeout;
     }
 }

@@ -40,4 +40,9 @@ public class Option_StartLeft_EndScoreRightScale extends AutoModeBase {
         System.out.println("Score Scale Time:\t"+(Timer.getFPGATimestamp() - start));
         runAction(new WaitAction(15));
     }
+
+    @Override
+    public void stop() {
+        super.stop();
+    }
 }

@@ -21,7 +21,7 @@ public class LEFT_SwitchNoScale extends AutoModeBase {
         } else {
             System.out.println(Constants.kGameSpecificMessage + "\t-> Starting Score Left Switch");
         }
-
+        child = determinedAutoMode;
         determinedAutoMode.run();
     }
 }

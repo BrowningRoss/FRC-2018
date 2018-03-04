@@ -2,6 +2,7 @@ package com.team6133.frc2018;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.team6133.frc2018.auto.AutoModeExecuter;
+import com.team6133.frc2018.auto.modes.StandStillMode;
 import com.team6133.frc2018.loops.Looper;
 import com.team6133.frc2018.subsystems.*;
 import com.team6133.frc2018.vision.PiConnection;
@@ -40,8 +41,8 @@ public class Robot extends IterativeRobot {
     // Create subsystem manager
     private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(Drive.getInstance(),
             Intake.getInstance(),
-            Launcher.getInstance(), Climber.getInstance(),
-            ConnectionMonitor.getInstance() , LED.getInstance()
+            Launcher.getInstance(), //Climber.getInstance(),
+            ConnectionMonitor.getInstance() //, LED.getInstance()
     ));
     // Get subsystem instances
     private Drive mDrive = Drive.getInstance();
@@ -113,7 +114,7 @@ public class Robot extends IterativeRobot {
             //~!@mEnabledLooper.register(VisionProcessor.getInstance());
 
             // mVisionServer.addVisionUpdateReceiver(VisionProcessor.getInstance());
-            (new Thread(new PiConnection())).start();
+            //(new Thread(new PiConnection())).start();
 
             AutoModeSelector.initAutoModeSelector();
 
@@ -124,7 +125,7 @@ public class Robot extends IterativeRobot {
         zeroAllSensors();
         mCubeState = RobotCubeState.HOLDING;
         mMatchState = MatchState.PRE_MATCH;
-        mLED.setWantedState(LED.WantedState.PRE_MATCH);
+        //mLED.setWantedState(LED.WantedState.PRE_MATCH);
     }
 
     /**
@@ -148,22 +149,14 @@ public class Robot extends IterativeRobot {
             zeroAllSensors();
             mIntake.setWantedState(Intake.WantedState.HOLDING);
 
-            // ~!@mSuperstructure.setWantedState(Superstructure.WantedState.IDLE);
-            // ~!@mSuperstructure.setActuateHopper(false);
-            // ~!@mSuperstructure.setOverrideCompressor(true);
-
             mAutoModeExecuter = null;
 
-            // ~!@Intake.getInstance().reset();
-
-            // Shift to high
-            // ~!@mDrive.setHighGear(true);
-            // ~!@mDrive.setBrakeMode(true);
-
             mEnabledLooper.start();
-            // ~!@mSuperstructure.reloadConstants();
+
             mAutoModeExecuter = new AutoModeExecuter();
             mAutoModeExecuter.setAutoMode(AutoModeSelector.getSelectedAutoMode());
+            Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
+            Constants.Robot_Auton_Start_Time = Timer.getFPGATimestamp();
             mAutoModeExecuter.start();
 
         } catch (Throwable t) {
@@ -186,6 +179,9 @@ public class Robot extends IterativeRobot {
      */
     @Override
     public void teleopInit() {
+        if (mAutoModeExecuter != null) {
+            mAutoModeExecuter.stop();
+        }
         try {
             CrashTracker.logTeleopInit();
             mDriveState = RobotDriveState.OPEN_LOOP;
@@ -198,6 +194,7 @@ public class Robot extends IterativeRobot {
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
+
         mMatchState = MatchState.END;
     }
 
@@ -216,20 +213,20 @@ public class Robot extends IterativeRobot {
         try {
             double timestamp = Timer.getFPGATimestamp();
             // Get Buttons
-            boolean rotateLeftButton    = mControlBoard.getRotateLeftButton();
-            boolean rotateRightButton   = mControlBoard.getRotateRightButton();
-            boolean wants_aim_button    = mControlBoard.getWantsAlignButton();
-            boolean wantsLaunchButton   = mControlBoard.getWantsLaunchButton();
-            boolean intakeFloor         = mControlBoard.getIntakeFloorButton();
-            boolean intakeStack         = mControlBoard.getIntakeStackButton();
-            boolean exhaustExchange     = mControlBoard.getExhaustExchangeButton();
-            boolean exhaustSwitch       = mControlBoard.getExhaustSwitchButton();
-            boolean loadLauncher        = mControlBoard.getLoadLauncherButton();
-            boolean extendClimber       = mControlBoard.getExtendClimbButton();
-            boolean retractClimber      = mControlBoard.getRetractClimbButton();
-            boolean climb               = mControlBoard.getClimbButton();
-            boolean wantsCube           = mControlBoard.getWantsCubeIntakeButton();
-            boolean wantsExhaust        = false;
+            boolean rotateLeftButton = mControlBoard.getRotateLeftButton();
+            boolean rotateRightButton = mControlBoard.getRotateRightButton();
+            boolean wants_aim_button = mControlBoard.getWantsAlignButton();
+            boolean wantsLaunchButton = mControlBoard.getWantsLaunchButton();
+            boolean intakeFloor = mControlBoard.getIntakeFloorButton();
+            boolean intakeStack = mControlBoard.getIntakeStackButton();
+            boolean exhaustExchange = mControlBoard.getExhaustExchangeButton();
+            boolean exhaustSwitch = mControlBoard.getExhaustSwitchButton();
+            boolean loadLauncher = mControlBoard.getLoadLauncherButton();
+            boolean extendClimber = mControlBoard.getExtendClimbButton();
+            boolean retractClimber = mControlBoard.getRetractClimbButton();
+            boolean climb = mControlBoard.getClimbButton();
+            boolean wantsCube = mControlBoard.getWantsCubeIntakeButton();
+            boolean wantsExhaust = false;
 
             // Get the joystick signals and send the modified DriveSignal to the Drive class.
             // This MUST be done before calling any of the other Drive methods.
@@ -282,7 +279,12 @@ public class Robot extends IterativeRobot {
                 mLauncher.setWantedState(Launcher.WantedState.ALIGN_SWITCH);
             }
 
-            if (intakeFloor) {
+            if (exhaustExchange && !_exhaustExchange) {
+                mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
+                mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
+            } else if (_exhaustExchange && !exhaustExchange) {
+                mIntake.setWantsExhaust();
+            } else if (intakeFloor) {
                 /*if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
                     mCubeState = RobotCubeState.INTAKE_FLOOR;
                     if (mIntake.hasCube())
@@ -292,6 +294,7 @@ public class Robot extends IterativeRobot {
                 }
                 if (mIntake.hasCube())
                     mIntake.overrideHasCube();*/
+
                 mCubeState = RobotCubeState.INTAKE_FLOOR;
             } else if (_intakeFloor) {
                 mIntake.setWantedState(Intake.WantedState.INTAKE_DONE);
@@ -304,12 +307,6 @@ public class Robot extends IterativeRobot {
                 }
                 if (mIntake.hasCube())
                     mIntake.overrideHasCube();
-            } else if (exhaustExchange && !_exhaustExchange) {
-                mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
-                mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
-            } else if (!exhaustExchange && _exhaustExchange) {
-                mIntake.setWantsExhaust();
-                wantsExhaust = true;
             } else if (loadLauncher && !_loadLauncher) {
                 mCubeState = RobotCubeState.LOAD_SHOOTER;
                 mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
@@ -445,7 +442,7 @@ public class Robot extends IterativeRobot {
         } else if (mMatchState == MatchState.MID) {
 
         } else if (mMatchState == MatchState.END) {
-            PiConnection.closeConnection();
+            //PiConnection.closeConnection();
             mLED.setWantedState(LED.WantedState.PRE_MATCH);
         }
 

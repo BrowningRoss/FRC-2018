@@ -33,6 +33,8 @@ public class AutoModeExecuter {
     public void stop() {
         if (m_auto_mode != null) {
             m_auto_mode.stop();
+        } else {
+            System.out.println("AutoMode is null in AutoModeExecuter");
         }
 
         m_thread = null;

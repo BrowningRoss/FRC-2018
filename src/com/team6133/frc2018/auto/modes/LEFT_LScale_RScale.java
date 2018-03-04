@@ -21,7 +21,7 @@ public class LEFT_LScale_RScale extends AutoModeBase {
         } else {
             System.out.println(Constants.kGameSpecificMessage + "\t-> Starting Score Left Scale");
         }
-
+        child = determinedAutoMode;
         determinedAutoMode.run();
     }
 }

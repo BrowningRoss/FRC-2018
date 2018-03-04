@@ -1,5 +1,6 @@
 package com.team6133.frc2018.auto.actions;
 
+import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.subsystems.Drive;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -19,7 +20,7 @@ public class WaitAction implements Action {
 
     @Override
     public boolean isFinished() {
-        return Timer.getFPGATimestamp() - mStartTime >= mTimeToWait;
+        return (Timer.getFPGATimestamp() - mStartTime >= mTimeToWait) || (Timer.getFPGATimestamp() - Constants.Robot_Auton_Start_Time) > 15;
     }
 
     @Override

@@ -6,10 +6,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.PowerDistributionPanel;
-import edu.wpi.first.wpilibj.Spark;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -20,14 +17,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Intake extends Subsystem {
 
-    private static final double kIntakeFloorCubeSetpoint = 580;
+    private static final double kIntakeFloorCubeSetpoint = 675;
     private static final double kIntakeStackCubeSetpoint = 350;
     private static final double kExhaustSwitchSetpoint   = 350;
     private static final double kExhaustExchangeSetpoint = 500;
     private static final double kHoldingSetpoint         = 0.000000;
     private static final double kLoadShooterSetpoint     = 0;
 
-    private static final double kIntakeMotorSetpoint     = -.75;
+    private static final double kIntakeMotorSetpoint     = -.95;
     private static final double kExhaustMotorSetpoint    = .85;
     private static final double kStowingMotorSetpoint    = -.5;
     private static final double kLauncherExhaustSetpoint = .5;
@@ -41,7 +38,7 @@ public class Intake extends Subsystem {
     private static final int kAllowableClosedLoopError = 5;
     private static final int kPDPSparkSlot = 5;
 
-    //public final DoubleSolenoid mLeftSolenoid, mRightSolenoid;
+    public final DoubleSolenoid mLeftSolenoid;;//, mRightSolenoid;
 
     private static Intake mInstance = null;
 
@@ -92,7 +89,7 @@ public class Intake extends Subsystem {
         mRightSpark = new Spark(Constants.kIntakeRightPWM   );
         mLeftSpark  = new Spark(Constants.kIntakeLeftPWM    );
 
-        //mLeftSolenoid  = Constants.makeDoubleSolenoidForId(Constants.kArmLeftSolenoidId  );
+        mLeftSolenoid  = Constants.makeDoubleSolenoidForId(Constants.kArmLeftSolenoidId  );
         //mRightSolenoid = Constants.makeDoubleSolenoidForId(Constants.kArmRightSolenoidId );
 
         mArmTalon.setStatusFramePeriod(StatusFrameEnhanced.Status_3_Quadrature, 5, 10);
@@ -114,10 +111,10 @@ public class Intake extends Subsystem {
 
         mLimitSwitch = new DigitalInput(0);
 
-        //mLeftSolenoid.set( DoubleSolenoid.Value.kOff);
+        mLeftSolenoid.set( DoubleSolenoid.Value.kOff);
         //mRightSolenoid.set(DoubleSolenoid.Value.kOff);
 
-        mPDP = new PowerDistributionPanel();
+        //mPDP = new PowerDistributionPanel();
     }
 
     public PowerDistributionPanel getPDP() {return mPDP;}
@@ -140,22 +137,25 @@ public class Intake extends Subsystem {
             case HOLDING:
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 return SystemState.STOWING;
+            case SCORE_EXCHANGE:
+                mThresholdStart = Double.POSITIVE_INFINITY;
+                return SystemState.EXHAUST_EXCHANGE;
             case INTAKE_DONE:
                 return SystemState.STOWING;
             default:
                 //mArmTalon.config_kP(0,.6, 0);
                 mArmTalon.set(ControlMode.Position, kIntakeFloorCubeSetpoint);
-                //mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
+                mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
                 //mRightSolenoid.set(DoubleSolenoid.Value.kReverse);
                 mLeftSpark.set(kIntakeMotorSetpoint);
                 mRightSpark.set(-kIntakeMotorSetpoint);
-
+                /*
                 if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold) {
                     mLED.setWantedState(LED.WantedState.SIGNAL);
                 } else {
                     mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
                 }
-
+                */
                 /*
                 if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold && !mHasCube) {
                     mHasCube = true;
@@ -188,7 +188,7 @@ public class Intake extends Subsystem {
                 return SystemState.STOWING;
             default:
                 mArmTalon.set(ControlMode.Position, kIntakeStackCubeSetpoint);
-                //mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
+                mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
                 //mRightSolenoid.set(DoubleSolenoid.Value.kReverse);
                 mLeftSpark.set(kIntakeMotorSetpoint);
                 mRightSpark.set(-kIntakeMotorSetpoint);
@@ -217,7 +217,7 @@ public class Intake extends Subsystem {
 
     private SystemState handleExhaustExchange(double timeInState) {
         mArmTalon.set(ControlMode.Position, kExhaustExchangeSetpoint);
-        //mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
+        mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
         //mRightSolenoid.set(DoubleSolenoid.Value.kReverse);
         if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
             if (mThresholdStart == Double.POSITIVE_INFINITY) {
@@ -284,7 +284,7 @@ public class Intake extends Subsystem {
     private SystemState handleExhaustSwitch(double timeInState) {
         mArmTalon.config_kP(0,50, 0);
         mArmTalon.config_kD(0,5,0);
-        //mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
+        mLeftSolenoid.set( DoubleSolenoid.Value.kReverse);
         //mRightSolenoid.set(DoubleSolenoid.Value.kReverse);
         mArmTalon.set(ControlMode.Position, kExhaustSwitchSetpoint);
 
@@ -346,7 +346,7 @@ public class Intake extends Subsystem {
 
     private SystemState handleExhaustShooter(double timeInState) {
         mArmTalon.set(ControlMode.Position, kLoadShooterSetpoint);
-        //mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
+        mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
         //mRightSolenoid.set(DoubleSolenoid.Value.kForward);
         if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
             if (mThresholdStart == Double.POSITIVE_INFINITY) {
@@ -413,7 +413,7 @@ public class Intake extends Subsystem {
     }
 
     private SystemState handleStowing(double timeInState) {
-        if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError && !mLimitSwitch.get()) {
+        /*if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError && !mLimitSwitch.get()) {
             mLeftSpark.set(kStowingMotorSetpoint);
             mRightSpark.set(-kStowingMotorSetpoint);
             mArmTalon.set(ControlMode.Position, -200);
@@ -426,10 +426,31 @@ public class Intake extends Subsystem {
         } else {
             mArmTalon.setSelectedSensorPosition(0, 0, 0);
             mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
+        }*/
+        mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
+        if (mLimitSwitch.get()) {
+            mArmTalon.set(ControlMode.PercentOutput, -1);
+            mThresholdStart = Double.POSITIVE_INFINITY;
+            mLeftSpark.set(kStowingMotorSetpoint);
+            mRightSpark.set(-kStowingMotorSetpoint);
+        } else {
+            mArmTalon.setSelectedSensorPosition(0,0,0);
+            mArmTalon.set(ControlMode.PercentOutput, 0);
+            if (mThresholdStart == Double.POSITIVE_INFINITY) {
+                mThresholdStart = timeInState;
+            } else {
+                if (timeInState - mThresholdStart > kStowingDelay) {
+                    mLeftSpark.set(kStowingMotorSetpoint);
+                    mRightSpark.set(-kStowingMotorSetpoint);
+                } else {
+                    return SystemState.STOWED;
+                }
+            }
         }
+        //mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
         //mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
         //mRightSolenoid.set(DoubleSolenoid.Value.kForward);
-        if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
+        /*if (mArmTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
             if (mThresholdStart == Double.POSITIVE_INFINITY) {
                 mThresholdStart = timeInState;
             } else {
@@ -444,12 +465,12 @@ public class Intake extends Subsystem {
             mThresholdStart = Double.POSITIVE_INFINITY;
             mLeftSpark.set(kStowingMotorSetpoint);
             mRightSpark.set(-kStowingMotorSetpoint);
-        }
+        }*/
         return SystemState.STOWING;
     }
 
     private SystemState handleStowed(double timeInState) {
-        //mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
+        mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
         //mRightSolenoid.set(DoubleSolenoid.Value.kForward);
         switch(mWantedState) {
             case ACQUIRE_FLOOR:
@@ -473,7 +494,7 @@ public class Intake extends Subsystem {
                 mThresholdEnd = Double.POSITIVE_INFINITY;
                 return SystemState.EXHAUST_SHOOTER;
             default:
-                mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
+                //mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
                 mRightSpark.set(0);
                 mLeftSpark.set(0);
                 return SystemState.STOWED;

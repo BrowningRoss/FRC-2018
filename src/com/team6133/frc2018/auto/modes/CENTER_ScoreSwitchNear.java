@@ -21,7 +21,7 @@ public class CENTER_ScoreSwitchNear extends AutoModeBase {
         } else {
             System.out.println(Constants.kGameSpecificMessage + "\t-> Starting Score Left Switch");
         }
-
+        child = determinedAutoMode;
         determinedAutoMode.run();
     }
 }

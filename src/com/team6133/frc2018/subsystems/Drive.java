@@ -67,7 +67,8 @@ public class Drive extends Subsystem {
         public void onStart(double timestamp) {
             synchronized (Drive.this) {
                 setOpenLoop();
-                mNavXBoard.reset();
+                if (Constants.Robot_Auton_Start_Time < 15)
+                    mNavXBoard.reset();
             }
             mCurrentStateStartTime = Timer.getFPGATimestamp();
             mTimeInState = 0.0;
@@ -112,16 +113,28 @@ public class Drive extends Subsystem {
     private Drive() {
         // Start all Talons in open loop mode.
         mFrontLeft = CANTalonFactory.createDefaultTalon(Constants.kFrontLeftDriveId);
-        mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
+        mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
+        mFrontLeft.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        mFrontLeft.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
+        mFrontLeft.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mFrontRight = CANTalonFactory.createDefaultTalon(Constants.kFrontRightDriveId);
-        mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
+        mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
+        mFrontRight.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        mFrontRight.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
+        mFrontRight.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mRearLeft = CANTalonFactory.createDefaultTalon(Constants.kRearLeftDriveId);
-        mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
+        mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
+        mRearLeft.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        mRearLeft.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
+        mRearLeft.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mRearRight = CANTalonFactory.createDefaultTalon(Constants.kRearRightDriveId);
-        mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 10);
+        mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
+        mRearRight.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        mRearRight.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
+        mRearRight.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mPIDTwist.setInputRange(-180.0, 180.0);
         mPIDTwist.setOutputRange(-Constants.kTwistMaxOutput, Constants.kTwistMaxOutput);
@@ -132,7 +145,7 @@ public class Drive extends Subsystem {
 
         mPIDProxFront.setDeadband(1.5);
         mPIDProxFront.setOutputRange(-1.0, 1.0);
-        mPIDProxFront.setInputRange(0.1, 545);
+        mPIDProxFront.setInputRange(0.8, 158);
 
         mFrontSensor = new UltrasonicSensor(10,12);
         mRightSensor = new IRSensor(Constants.kIRPDRightPort, Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
@@ -316,7 +329,6 @@ public class Drive extends Subsystem {
         // Force a reset of the time delayed boolean
         mAutonTimedBoolean.update(false, mPathSetting.getTimeout());
         mAutonTimedBoolean.update(true, mPathSetting.getTimeout());
-        System.out.println("Gyro:\t"+ getGyroAngle().getDegrees() + "\tX-Mag:\t" + mPathSetting.getMagnitudeX() + "\tY-Mag:\t" + mPathSetting.getMagnitudeY());
     }
 
     /**
@@ -339,6 +351,7 @@ public class Drive extends Subsystem {
             mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
         } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.Ultra) {
             sensor = Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 2;
+            System.out.println("Ultra Distance:\t" + mFrontSensor.getAverageDistance());
             if (Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 15) {
                 // If we are < 15" from the target, slow down to 50% magnitude
                 mMecanumDrive.driveCartesian(0.5 * magX, 0.5* magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
@@ -349,9 +362,7 @@ public class Drive extends Subsystem {
             sensor = mPIDTwist.onTarget(1.5);
             mMecanumDrive.driveCartesian(0,0, -mPIDTwist.get(), getGyroAngle().getDegrees());
         }
-        if (mAutonTimedBoolean.update(true, mPathSetting.getTimeout()) && sensor) {
-            System.out.println("End Path Gyro:\t" + getGyroAngle().getDegrees());
-        }
+        //System.out.println("Sensor: " + sensor);
         return mAutonTimedBoolean.update(true, mPathSetting.getTimeout()) && sensor;
     }
 

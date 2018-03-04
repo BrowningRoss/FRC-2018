@@ -1,6 +1,9 @@
 package com.team6133.frc2018.auto;
 
+import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.auto.actions.Action;
+import edu.wpi.first.wpilibj.Timer;
+
 
 /**
  * An abstract class that is the basis of the robot's autonomous routines. This
@@ -11,6 +14,7 @@ public abstract class AutoModeBase {
     protected boolean m_active = false;
     protected double FACE_LEFT = -90;
     protected double FACE_RIGHT = 90;
+    protected AutoModeBase child = null;
 
     protected abstract void routine() throws AutoModeEndedException;
 
@@ -32,6 +36,8 @@ public abstract class AutoModeBase {
 
     public void stop() {
         m_active = false;
+        if (child != null)
+            child.stop();
     }
 
     public boolean isActive() {

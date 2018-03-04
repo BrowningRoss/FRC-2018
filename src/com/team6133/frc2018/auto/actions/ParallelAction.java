@@ -1,5 +1,8 @@
 package com.team6133.frc2018.auto.actions;
 
+import com.team6133.frc2018.Constants;
+import edu.wpi.first.wpilibj.Timer;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +29,7 @@ public class ParallelAction implements Action {
                 all_finished = false;
             }
         }
-        return all_finished;
+        return all_finished || (Timer.getFPGATimestamp() - Constants.Robot_Auton_Start_Time) > 15;
     }
 
     @Override

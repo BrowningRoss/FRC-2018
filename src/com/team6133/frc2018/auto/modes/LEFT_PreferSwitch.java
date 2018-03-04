@@ -24,7 +24,7 @@ public class LEFT_PreferSwitch extends AutoModeBase {
         } else {
             System.out.println(Constants.kGameSpecificMessage + "\t-> Starting Score Left Switch");
         }
-
+        child = determinedAutoMode;
         determinedAutoMode.run();
     }
 }
