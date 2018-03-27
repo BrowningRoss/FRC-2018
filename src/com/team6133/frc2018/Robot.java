@@ -10,6 +10,7 @@ import com.team6133.lib.util.CrashTracker;
 import com.team6133.lib.util.DriveHelper;
 import com.team6133.lib.util.DriveSignal;
 import com.team6133.lib.util.drivers.RevDigitBoard;
+import com.team6133.lib.util.math.Rotation2d;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -42,13 +43,13 @@ public class Robot extends IterativeRobot {
     private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(Drive.getInstance(),
             Intake.getInstance(),
             Launcher.getInstance(), //Climber.getInstance(),
-            ConnectionMonitor.getInstance() //, LED.getInstance()
+            ConnectionMonitor.getInstance() , LED.getInstance()
     ));
     // Get subsystem instances
     private Drive mDrive = Drive.getInstance();
     private Intake mIntake = Intake.getInstance();
     private Launcher mLauncher = Launcher.getInstance();
-    private Climber mClimber = Climber.getInstance();
+    //private Climber mClimber = Climber.getInstance();
 
     private LED mLED = LED.getInstance();
     private AutoModeExecuter mAutoModeExecuter = null;
@@ -100,6 +101,7 @@ public class Robot extends IterativeRobot {
     private boolean _loadLauncher        = false;
     private boolean _wantsCube           = false;
     private boolean _climb               = false;
+    private boolean _actuatePistons      = false;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -125,7 +127,8 @@ public class Robot extends IterativeRobot {
         zeroAllSensors();
         mCubeState = RobotCubeState.HOLDING;
         mMatchState = MatchState.PRE_MATCH;
-        //mLED.setWantedState(LED.WantedState.PRE_MATCH);
+        mLED.setWantedState(LED.WantedState.PRE_MATCH);
+        //mDrive.getNavXBoard().setAngleAdjustment(Rotation2d.fromDegrees(-90));
     }
 
     /**
@@ -144,6 +147,14 @@ public class Robot extends IterativeRobot {
 
             if (mAutoModeExecuter != null) {
                 mAutoModeExecuter.stop();
+            }
+
+            if (Constants.kAllianceColor == DriverStation.Alliance.Blue) {
+                System.out.println("Blue Alliance Detected");
+                mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
+            } else if (Constants.kAllianceColor == DriverStation.Alliance.Red) {
+                System.out.println("Red Alliance Detected");
+                mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
             }
 
             zeroAllSensors();
@@ -196,6 +207,7 @@ public class Robot extends IterativeRobot {
         }
 
         mMatchState = MatchState.END;
+        Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
     }
 
     /**
@@ -217,14 +229,15 @@ public class Robot extends IterativeRobot {
             boolean rotateRightButton = mControlBoard.getRotateRightButton();
             boolean wants_aim_button = mControlBoard.getWantsAlignButton();
             boolean wantsLaunchButton = mControlBoard.getWantsLaunchButton();
+            boolean wantsActuatePistons = mControlBoard.getActuateIntakePistonsButton();
             boolean intakeFloor = mControlBoard.getIntakeFloorButton();
             boolean intakeStack = mControlBoard.getIntakeStackButton();
             boolean exhaustExchange = mControlBoard.getExhaustExchangeButton();
             boolean exhaustSwitch = mControlBoard.getExhaustSwitchButton();
             boolean loadLauncher = mControlBoard.getLoadLauncherButton();
-            boolean extendClimber = mControlBoard.getExtendClimbButton();
-            boolean retractClimber = mControlBoard.getRetractClimbButton();
-            boolean climb = mControlBoard.getClimbButton();
+            //boolean extendClimber = mControlBoard.getExtendClimbButton();
+            //boolean retractClimber = mControlBoard.getRetractClimbButton();
+            //boolean climb = mControlBoard.getClimbButton();
             boolean wantsCube = mControlBoard.getWantsCubeIntakeButton();
             boolean wantsExhaust = false;
 
@@ -240,7 +253,7 @@ public class Robot extends IterativeRobot {
                 if (mDriveState != RobotDriveState.WANTS_AIM) {
                     mDrive.setAlignLaunch(timestamp);
                     mDriveState = RobotDriveState.WANTS_AIM;
-                    Timer.delay(.005);
+                    //Timer.delay(.005);
                 }
                 mDrive.updateAlignLaunch();
                 // @TODO: Add more launcher functionality.
@@ -266,6 +279,10 @@ public class Robot extends IterativeRobot {
                 }
             }
 
+            if (wantsActuatePistons && !_actuatePistons) {
+                mIntake.setPistonState(mIntake.getNewPistonState());
+            }
+
             if (!wantsLaunchButton && _wantsLaunch) {
                 // We just released the aim button. Time to fire!
                 mLauncher.setWantsLaunch();
@@ -279,26 +296,17 @@ public class Robot extends IterativeRobot {
                 mLauncher.setWantedState(Launcher.WantedState.ALIGN_SWITCH);
             }
 
-            if (exhaustExchange && !_exhaustExchange) {
+            if (exhaustExchange) {
                 mCubeState = RobotCubeState.EXHAUST_EXCHANGE;
                 mIntake.setWantedState(Intake.WantedState.SCORE_EXCHANGE);
-            } else if (_exhaustExchange && !exhaustExchange) {
+            } else if (_exhaustExchange) {
                 mIntake.setWantsExhaust();
             } else if (intakeFloor) {
-                /*if (mCubeState != RobotCubeState.INTAKE_FLOOR) {
-                    mCubeState = RobotCubeState.INTAKE_FLOOR;
-                    if (mIntake.hasCube())
-                       mIntake.overrideHasCube();
-                } else {
-                    mCubeState = RobotCubeState.HOLDING;
-                }
-                if (mIntake.hasCube())
-                    mIntake.overrideHasCube();*/
-
                 mCubeState = RobotCubeState.INTAKE_FLOOR;
             } else if (_intakeFloor) {
                 mIntake.setWantedState(Intake.WantedState.INTAKE_DONE);
                 mCubeState = RobotCubeState.HOLDING;
+                mLauncher.setWantedState(Launcher.WantedState.INTAKE_CUBE);
             } else if (intakeStack && !_intakeStack) {
                 if (mCubeState != RobotCubeState.INTAKE_STACK) {
                     mCubeState = RobotCubeState.INTAKE_STACK;
@@ -311,11 +319,7 @@ public class Robot extends IterativeRobot {
                 mCubeState = RobotCubeState.LOAD_SHOOTER;
                 mIntake.setWantedState(Intake.WantedState.LOAD_SHOOTER);
             }
-            /*else {
-                mIntake.setWantedState(Intake.WantedState.HOLDING);
-                mCubeState = RobotCubeState.HOLDING;
-            }*/
-
+            /*
             // Set the wanted state of the Climber
             if (!climb && _climb) {
                 mClimber.setWantedState(Climber.WantedState.IDLE);
@@ -331,7 +335,7 @@ public class Robot extends IterativeRobot {
                 mCubeState = RobotCubeState.INTAKE_FLOOR;
             } else {
                 mClimber.setWantedState(Climber.WantedState.IDLE);
-            }
+            }*/
 
 
             switch (mCubeState) {
@@ -376,7 +380,8 @@ public class Robot extends IterativeRobot {
             _wantsAim        = wants_aim_button;
             _wantsLaunch     = wantsLaunchButton;
             _wantsCube       = wantsCube;
-            _climb           = climb;
+            _actuatePistons  = wantsActuatePistons;
+            //_climb           = climb;
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -419,10 +424,6 @@ public class Robot extends IterativeRobot {
             zeroAllSensors();
             // If we are connected to the FMS, then let's check every 5ms for the message.
             if ( DriverStation.getInstance().isFMSAttached() ) {
-                if ( Constants.kGameSpecificMessage.length() != 3) {
-                    Constants.kGameSpecificMessage = DriverStation.getInstance().getGameSpecificMessage();
-                    Timer.delay(0.005);
-                }
                 Constants.kAllianceColor = DriverStation.getInstance().getAlliance();
                 if (Constants.kAllianceColor == DriverStation.Alliance.Blue) {
                     mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
@@ -467,17 +468,18 @@ public class Robot extends IterativeRobot {
             System.out.println("ALL SYSTEMS PASSED");
         }
         mDrive.setVoltageRightIRPD(216);
-        mDrive.setVoltageLeftIRPD(100);
+        mDrive.setVoltageLeftIRPD(40);
+        mDrive.setVoltageRearIRPD(100);
     }
     private int loops = 0;
     @Override
     public void testPeriodic() {
         allPeriodic();
         mDrive.mFrontSensor.update();
-        if (++loops >= 200) {
+        if (++loops >= 100) {
             System.out.println("Limit switch Value:\t" + mIntake.checkSystem());
             System.out.println("Ultrasonic Value:\t" + mDrive.mFrontSensor.getAverageDistance());
-            System.out.println("Left IRPD Sees Wall: "+mDrive.mLeftSensor.seesWall() + "\t||\tRight IRPD Sees Wall: " + mDrive.mRightSensor.seesWall());
+            System.out.println("Left IRPD Sees Wall: "+mDrive.mLeftSensor.seesWall() + "\t||\tRight IRPD Sees Wall: " + mDrive.mRightSensor.seesWall() + "\t||\tRear IRPD Sees Wall: " + mDrive.mRearSensor.seesWall());
             loops = 0;
         }
     }

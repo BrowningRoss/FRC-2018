@@ -12,16 +12,18 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartLeft_EndScoreRightSwitch extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 36, 48, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 48, true), .5);
-    AutonPathSettings path2 = new AutonPathSettings(0, 100, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 28, false), 2);
-    AutonPathSettings path3 = new AutonPathSettings(FACE_RIGHT, 0, 12, new SensorTarget(SensorTarget.Sensor.RightIRPD, 150, true), 1);
-    AutonPathSettings path4 = new AutonPathSettings(FACE_RIGHT, -12, 0, new SensorTarget(SensorTarget.Sensor.Ultra, Constants.SWITCH_SIDE_DISTANCE_INCHES, false), .8);
-
+    //AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 36, 48, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 48, true), .5);
+    //AutonPathSettings path2 = new AutonPathSettings(0, 100, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 28, false), 2);
+    //AutonPathSettings path3 = new AutonPathSettings(FACE_RIGHT, 0, 12, new SensorTarget(SensorTarget.Sensor.RightIRPD, 150, true), 1);
+    //AutonPathSettings path4 = new AutonPathSettings(FACE_RIGHT, -12, 0, new SensorTarget(SensorTarget.Sensor.Ultra, Constants.SWITCH_SIDE_DISTANCE_INCHES, false), .8);
+    AutonPathSettings path = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 150, true), 0.5, .5);
     @Override
     protected void routine() throws AutoModeEndedException {
         System.out.println("Option_StartLeft_EndScoreRightSwitch()");
         double start = Timer.getFPGATimestamp();
         runAction(new ResetStartingPoseAction(Rotation2d.fromDegrees(FACE_LEFT)));
+        runAction(new DrivePathAction(path));
+        /*
         runAction(new DrivePathAction(path1));
         System.out.println("Path 1/4 Time:\t" + (Timer.getFPGATimestamp() - start));
 
@@ -38,7 +40,7 @@ public class Option_StartLeft_EndScoreRightSwitch extends AutoModeBase {
         System.out.println("Path 4/4 Time:\t" + (Timer.getFPGATimestamp() - start));
         runAction(new LaunchSwitchAction());
         System.out.println("Score Switch Time:\t" + (Timer.getFPGATimestamp() - start));
-
+        */
         runAction(new WaitAction(15));
     }
 }

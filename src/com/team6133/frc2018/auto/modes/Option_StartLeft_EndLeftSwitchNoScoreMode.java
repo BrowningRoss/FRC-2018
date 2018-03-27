@@ -11,7 +11,7 @@ import com.team6133.lib.util.math.Rotation2d;
 import edu.wpi.first.wpilibj.Timer;
 
 public class Option_StartLeft_EndLeftSwitchNoScoreMode extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 150, true), 0.5);
+    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 150, true), 0.5, .5);
 
     @Override
     protected void routine() throws AutoModeEndedException {

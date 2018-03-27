@@ -32,9 +32,7 @@ public class DrivePathAction implements Action {
     }
 
     @Override
-    public void done() {
-        mDrive.stop();
-    }
+    public void done() {    }
 
     @Override
     public void start() {

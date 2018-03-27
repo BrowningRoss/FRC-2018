@@ -4,6 +4,7 @@ import com.team6133.frc2018.Constants;
 import com.team6133.frc2018.loops.Loop;
 import com.team6133.frc2018.loops.Looper;
 import edu.wpi.first.wpilibj.DigitalOutput;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * The LED subsystem consists of three 5V LED strips, controlled by a 32bit Arduino.
@@ -25,15 +26,7 @@ public class LED extends Subsystem {
 
     private Loop mLoop = new Loop() {
         @Override
-        public void onStart(double timestamp) {
-            synchronized (LED.this) {
-                mSystemState = SystemState.PRE_MATCH;
-                mWantedState = WantedState.PRE_MATCH;
-                mRED.set(true);
-                mBLUE.set(true);
-                mReset.set(true);
-            }
-        }
+        public void onStart(double timestamp) {}
 
         @Override
         public void onLoop(double timestamp) {
@@ -57,7 +50,6 @@ public class LED extends Subsystem {
                         break;
                 }
                 if (newState != mSystemState) {
-                    System.out.println("LED state " + mSystemState + " to " + newState);
                     mSystemState = newState;
                 }
             }
@@ -74,8 +66,16 @@ public class LED extends Subsystem {
         mRED.set(true);
 
         mReset = new DigitalOutput(Constants.kResetArduinoId);
-        mReset.set(true);
+        mReset.set(false);
         mHasReset = false;
+        reset();
+    }
+
+    private void reset() {
+        Timer.delay(.05);
+        mReset.set(true);
+        Timer.delay(.05);
+        mReset.set(false);
     }
 
     public static LED getInstance() {
@@ -104,7 +104,7 @@ public class LED extends Subsystem {
     private synchronized SystemState handlePreMatch() {
         mRED.set(true);
         mBLUE.set(true);
-        mReset.set(true);
+        mReset.set(false);
         return defaultStateTransfer();
     }
 
@@ -128,16 +128,22 @@ public class LED extends Subsystem {
         if (!mHasReset) {
             mRED.set(true);
             mBLUE.set(true);
+            mReset.set(true);
+            Timer.delay(.05);
             mReset.set(false);
             mHasReset = true;
             System.out.println("End of the match! Resetting the LEDs...");
         } else {
             mRED.set(true);
             mBLUE.set(true);
-            mReset.set(true);
+            mReset.set(false);
         }
         mWantedState = WantedState.PRE_MATCH;
         return defaultStateTransfer();
+    }
+
+    public synchronized boolean isSignaling() {
+        return mSystemState == SystemState.SIGNALING;
     }
 
     @Override

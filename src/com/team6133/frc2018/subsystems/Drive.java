@@ -44,6 +44,7 @@ public class Drive extends Subsystem {
     public final UltrasonicSensor mFrontSensor;
     public IRSensor mLeftSensor;
     public IRSensor mRightSensor;
+    public IRSensor mRearSensor;
     // Logging
     //???private final ReflectingCSVWriter<PathFollower.DebugOutput> mCSVWriter;
     // Control states
@@ -114,27 +115,35 @@ public class Drive extends Subsystem {
         // Start all Talons in open loop mode.
         mFrontLeft = CANTalonFactory.createDefaultTalon(Constants.kFrontLeftDriveId);
         mFrontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
-        mFrontLeft.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
-        mFrontLeft.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
-        mFrontLeft.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
+        //mFrontLeft.configPeakOutputReverse(-.7, 0);
+        //mFrontLeft.configPeakOutputForward(.7, 0);
+        //mFrontLeft.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        //mFrontLeft.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 10);
+        //mFrontLeft.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mFrontRight = CANTalonFactory.createDefaultTalon(Constants.kFrontRightDriveId);
         mFrontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
-        mFrontRight.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
-        mFrontRight.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
-        mFrontRight.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
+        //mFrontRight.configPeakOutputReverse(-.7, 0);
+        //mFrontRight.configPeakOutputForward(.7, 0);
+        //mFrontRight.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        //mFrontRight.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 10);
+        //mFrontRight.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mRearLeft = CANTalonFactory.createDefaultTalon(Constants.kRearLeftDriveId);
         mRearLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
-        mRearLeft.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
-        mRearLeft.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
-        mRearLeft.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
+        //mRearLeft.configPeakOutputReverse(-.7, 0);
+        //mRearLeft.configPeakOutputForward(.7, 0);
+        //mRearLeft.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        //mRearLeft.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 10);
+        //mRearLeft.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mRearRight = CANTalonFactory.createDefaultTalon(Constants.kRearRightDriveId);
         mRearRight.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 5, 0);
-        mRearRight.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
-        mRearRight.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 0);
-        mRearRight.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
+        //mRearRight.configPeakOutputReverse(-.7, 0);
+        //mRearRight.configPeakOutputForward(.7, 0);
+        //mRearRight.configPeakCurrentLimit(Constants.Drive_Current_Limit, 0);
+        //mRearRight.configContinuousCurrentLimit(Constants.Drive_Continuous_Current_Limit, 10);
+        //mRearRight.configPeakCurrentDuration(Constants.Drive_Current_Timeout_Ms, 0);
 
         mPIDTwist.setInputRange(-180.0, 180.0);
         mPIDTwist.setOutputRange(-Constants.kTwistMaxOutput, Constants.kTwistMaxOutput);
@@ -146,10 +155,12 @@ public class Drive extends Subsystem {
         mPIDProxFront.setDeadband(1.5);
         mPIDProxFront.setOutputRange(-1.0, 1.0);
         mPIDProxFront.setInputRange(0.8, 158);
+        mPIDProxFront.setPID(.05,.0025, .005);
 
         mFrontSensor = new UltrasonicSensor(10,12);
         mRightSensor = new IRSensor(Constants.kIRPDRightPort, Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
         mLeftSensor  = new IRSensor(Constants.kIRPDLeftPort, Constants.MIN_TRIGGER_VOLTAGE, Constants.MAX_TRIGGER_VOLTAGE);
+        mRearSensor  = new IRSensor(0, 1.5, 1.52);
 
 
         // NavXmicro using I2C on the RoboRIO (NOT using the MXP slot)
@@ -288,6 +299,7 @@ public class Drive extends Subsystem {
         try {
             if (mTimeInState > mThresholdTime) {
                 mMecanumDrive.driveCartesian(mPIDProxFront.get(), mDriveSignal.getY(), -mPIDTwist.get(), getGyroAngle().getDegrees());
+                System.out.println("PID Front Value: "+ mPIDProxFront.get() + "\t||\tUltrasonic Value: " + mFrontSensor.getAverageDistance());
             } else {
                 mMecanumDrive.driveCartesian(mDriveSignal.getX(), mDriveSignal.getY(), -mPIDTwist.get(), getGyroAngle().getDegrees());
             }
@@ -349,9 +361,12 @@ public class Drive extends Subsystem {
         } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.RightIRPD) {
             sensor = mRightSensor.seesWall() != mPathSetting.getInvertIRPD();
             mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
+        } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.RearIRPD) {
+            sensor = mRearSensor.seesWall() != mPathSetting.getInvertIRPD();
+            mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
         } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.Ultra) {
-            sensor = Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 2;
-            System.out.println("Ultra Distance:\t" + mFrontSensor.getAverageDistance());
+            sensor = Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 4;
+            //System.out.println("Ultra Distance:\t" + mFrontSensor.getAverageDistance());
             if (Math.abs(mFrontSensor.getAverageDistance() - mPathSetting.getSensorTarget().target) < 15) {
                 // If we are < 15" from the target, slow down to 50% magnitude
                 mMecanumDrive.driveCartesian(0.5 * magX, 0.5* magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
@@ -427,9 +442,51 @@ public class Drive extends Subsystem {
         mRightSensor.setLimitsVoltage(voltage_min, voltage_max);
     }
 
+    public void setVoltageRearIRPD(double range) {
+        double inverse_cm = 0.3937 / range;
+        double voltage_min = 1.125 + 137.5 * inverse_cm;
+        inverse_cm = 0.3937 / (range*.95);
+        double voltage_max = 1.125 + 137.5 * inverse_cm;
+        mRearSensor.setLimitsVoltage(voltage_min, voltage_max);
+    }
+
     public void setVoltageBothIRPD(double range) {
         setVoltageLeftIRPD(range);
         setVoltageRightIRPD(range);
+        setVoltageRearIRPD(range);
+    }
+
+    public enum PeakVoltageMode {
+        LOW, HI
+    }
+
+    private PeakVoltageMode mPeakVoltageMode = PeakVoltageMode.HI;
+
+    public void setPeakVoltageMode(PeakVoltageMode mode) {
+        if (mPeakVoltageMode != mode) {
+            mPeakVoltageMode = mode;
+            switch (mode) {
+                case HI:
+                    mFrontRight.configPeakOutputForward(1, 0);
+                    mFrontRight.configPeakOutputReverse(-1, 0);
+                    mFrontLeft.configPeakOutputForward(1, 0);
+                    mFrontLeft.configPeakOutputReverse(-1, 0);
+                    mRearRight.configPeakOutputForward(1, 0);
+                    mRearRight.configPeakOutputReverse(-1, 0);
+                    mRearLeft.configPeakOutputForward(1, 0);
+                    mRearLeft.configPeakOutputReverse(-1, 0);
+                    return;
+                case LOW:
+                    mFrontRight.configPeakOutputForward(.4, 0);
+                    mFrontRight.configPeakOutputReverse(-.4, 0);
+                    mFrontLeft.configPeakOutputForward(.4, 0);
+                    mFrontLeft.configPeakOutputReverse(-.4, 0);
+                    mRearRight.configPeakOutputForward(.4, 0);
+                    mRearRight.configPeakOutputReverse(-.4, 0);
+                    mRearLeft.configPeakOutputForward(.4, 0);
+                    mRearLeft.configPeakOutputReverse(-.4, 0);
+            }
+        }
     }
 
 

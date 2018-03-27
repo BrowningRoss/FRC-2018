@@ -60,17 +60,20 @@ public class ControlBoard implements ControlBoardInterface {
     public boolean getIntakeStackButton() { return mButtonBoard.getRawButton(8);}
 
     @Override
-    public boolean getWantsAlignButton() { return Math.abs(mButtonBoard.getRawAxis(2)) > 0.2;}
+    public boolean getWantsAlignButton() { return false;}
 
     @Override
     public boolean getIntakeFloorButton() { return mButtonBoard.getRawButton(2);}
 
     @Override
-    public boolean getExhaustExchangeButton() { return mButtonBoard.getRawButton(6);}
+    public boolean getExhaustExchangeButton() { return mButtonBoard.getRawButton(6); }
+
+    @Override
+    public boolean getActuateIntakePistonsButton() { return mButtonBoard.getRawButton(5); }
 
     @Override
     public boolean getExhaustSwitchButton() {
-        return mButtonBoard.getRawButton(5);
+        return Math.abs(mButtonBoard.getRawAxis(2)) > 0.2;
     }
 
     @Override

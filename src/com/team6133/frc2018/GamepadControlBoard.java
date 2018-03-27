@@ -76,6 +76,11 @@ public class GamepadControlBoard implements ControlBoardInterface {
     }
 
     @Override
+    public boolean getActuateIntakePistonsButton() {
+        return false;
+    }
+
+    @Override
     public boolean getExtendClimbButton() {
         return false;
     }

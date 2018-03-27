@@ -38,7 +38,7 @@ public class Constants extends ConstantsBase {
     public static final int kFrontRightDriveId  = 5;
     public static final int kRearRightDriveId   = 7;
     public static final int Drive_Current_Limit = 25;
-    public static final int Drive_Continuous_Current_Limit = 20;
+    public static final int Drive_Continuous_Current_Limit = 30;
     public static final int Drive_Current_Timeout_Ms = 250;
 
     // Intake
@@ -64,7 +64,7 @@ public class Constants extends ConstantsBase {
     // Solenoid IDs
     public static final int kLauncherSolenoidId = 2;    // PCM 0, Forward Channel 2, Reverse Channel 3
     public static final int kArmLeftSolenoidId  = 0;    // PCM 0, Forward Channel 0, Reverse Channel 1
-    //public static final int kArmRightSolenoidId = 0;    // PCM 0, Forward Channel 0, Reverse Channel 1
+    public static final int kArmRightSolenoidId = 4;    // PCM 0, Forward Channel 0, Reverse Channel 1
 
     // Launcher RPM Tuning
     public static final double kLauncherRPM = 36000;
@@ -77,7 +77,7 @@ public class Constants extends ConstantsBase {
     public static final double MIN_TRIGGER_VOLTAGE = 2.5;
 
     // Ultrasonic Setpoint Tuning
-    public static final double SWITCH_SIDE_DISTANCE_INCHES = 49.5;
+    public static final double SWITCH_SIDE_DISTANCE_INCHES = 52.5;
 
 
     /* ROBOT PHYSICAL CONSTANTS */
@@ -116,13 +116,13 @@ public class Constants extends ConstantsBase {
     public static final double kIntakeKd     = 0.05;
     public static final double kIntakeKf     = 0.06;
 
-    public static final double kLaunchProxSetpoint = 18;
+    public static final double kLaunchProxSetpoint = 22;
 
     public static final double kTwistMaxOutput = 0.66;
 
     // Digital Outputs
-    public static final int kAllianceBlueLEDId = 14;
-    public static final int kAllianceRedLEDId = 16;
+    public static final int kAllianceBlueLEDId = 1;
+    public static final int kAllianceRedLEDId = 14;
     public static final int kResetArduinoId  = 18;
 
 

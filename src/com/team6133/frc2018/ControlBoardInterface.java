@@ -31,6 +31,8 @@ public interface ControlBoardInterface {
 
     boolean getLoadLauncherButton();
 
+    boolean getActuateIntakePistonsButton();
+
     boolean getExtendClimbButton();
 
     boolean getRetractClimbButton();
