@@ -12,12 +12,12 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartLeft_EndScoreRightScale extends AutoModeBase {
-    AutonPathSettings path1a = new AutonPathSettings(FACE_LEFT, 0,1, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 216, false), .15, .66);
-    AutonPathSettings path1b = new AutonPathSettings(FACE_LEFT, 0,1, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 216, true), .25, .75);
-    AutonPathSettings path1c = new AutonPathSettings(FACE_LEFT, 0,1, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 216, true), .35, .75);
-    AutonPathSettings path2a = new AutonPathSettings(FACE_LEFT, 1, 0, new SensorTarget(SensorTarget.Sensor.RearIRPD, 100, false), 1, .5);
-    AutonPathSettings path3a = new AutonPathSettings(FACE_RIGHT, 0, 1, new SensorTarget(SensorTarget.Sensor.RearIRPD, 100, false), 1.5, .66);
-    AutonPathSettings path3b = new AutonPathSettings(FACE_RIGHT, 0, 1, new SensorTarget(SensorTarget.Sensor.RearIRPD, 100, false), .5, .66);
+    AutonPathSettings path1a = new AutonPathSettings(FACE_LEFT, 0,1, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.2, false), .15, .66);
+    AutonPathSettings path1b = new AutonPathSettings(FACE_LEFT, 0,1, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.2, true), .25, .85);
+    AutonPathSettings path1c = new AutonPathSettings(FACE_LEFT, 0,1, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.2, true), .35, .85);
+    AutonPathSettings path2a = new AutonPathSettings(FACE_LEFT, 1, 0, new SensorTarget(SensorTarget.Sensor.RearIRPD, 1.55, false), 1, .5);
+    AutonPathSettings path3a = new AutonPathSettings(FACE_RIGHT, 0, 1, new SensorTarget(SensorTarget.Sensor.RearIRPD, 1.55, false), 1.5, .66);
+    AutonPathSettings path3b = new AutonPathSettings(FACE_RIGHT, 0, 1, new SensorTarget(SensorTarget.Sensor.RearIRPD, 1.55, false), .5, .66);
     //AutonPathSettings path4 = new AutonPathSettings(FACE_RIGHT, 1,0, new SensorTarget(SensorTarget.Sensor.Ultra, Constants.kLaunchProxSetpoint, false), 0.5, .4);
     @Override
     protected void routine() throws AutoModeEndedException {

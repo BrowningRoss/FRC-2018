@@ -11,10 +11,10 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartCenter_EndScoreSwitchRight extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 96, true), .25, .5);
-    AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 96, true), .05, .4);
-    AutonPathSettings path3 = new AutonPathSettings(FACE_LEFT, 0, 55, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 45, true), .4, .5);
-    AutonPathSettings path4 = new AutonPathSettings(0, 0, 55, new SensorTarget(SensorTarget.Sensor.Ultra, 96, false), .15, .4);
+    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.60, true), .25, .5);
+    AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.60, true), .05, .4);
+    AutonPathSettings path3 = new AutonPathSettings(FACE_LEFT, 0, 55, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 2.25, true), .4, .5);
+    AutonPathSettings path4 = new AutonPathSettings(0, 0, 55, new SensorTarget(SensorTarget.Sensor.Ultra, 96, true), .15, .4);
 
     @Override
     protected void routine() throws AutoModeEndedException {

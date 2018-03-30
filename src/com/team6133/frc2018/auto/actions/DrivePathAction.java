@@ -15,8 +15,20 @@ public class DrivePathAction implements Action {
 
     public DrivePathAction(AutonPathSettings path) {
         mPath = path;
-        if (mPath.getSensorTarget().sensor != SensorTarget.Sensor.Ultra) {
-            mDrive.setVoltageBothIRPD(mPath.getSensorTarget().target);
+        double min, max;
+        if (path.getInvertIRPD()) {
+            max = path.getSensorTarget().target;
+            min = max * .95;
+        } else {
+            min = path.getSensorTarget().target;
+            max = min * 1.05;
+        }
+        if (mPath.getSensorTarget().sensor == SensorTarget.Sensor.LeftIRPD) {
+            mDrive.mLeftSensor.setLimitsVoltage(min, max);
+        } else if (mPath.getSensorTarget().sensor == SensorTarget.Sensor.RearIRPD) {
+            mDrive.mRearSensor.setLimitsVoltage(min, max);
+        } else if (mPath.getSensorTarget().sensor == SensorTarget.Sensor.RightIRPD) {
+            mDrive.mRearSensor.setLimitsVoltage(min, max);
         }
     }
 

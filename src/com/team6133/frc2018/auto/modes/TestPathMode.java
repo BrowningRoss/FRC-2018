@@ -10,10 +10,8 @@ import com.team6133.lib.util.SensorTarget;
 import com.team6133.lib.util.math.Rotation2d;
 
 public class TestPathMode extends AutoModeBase {
-    AutonPathSettings path1a = new AutonPathSettings(FACE_LEFT, 0,216, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 216, false), .25, .4);
-    AutonPathSettings path1b = new AutonPathSettings(FACE_LEFT, 0,216, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 216, false), .25, .55);
-    AutonPathSettings path1c = new AutonPathSettings(FACE_LEFT, 0,216, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 216, false), .25, .66);
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,216, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 216, true), .5, .75);
+    AutonPathSettings path1a = new AutonPathSettings(FACE_LEFT, 0,216, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.2, false), .25, .66);
+    AutonPathSettings path1b = new AutonPathSettings(FACE_LEFT, 0,216, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.2, true), .5, .85);
 
     @Override
     protected void routine() throws AutoModeEndedException {
@@ -25,8 +23,8 @@ public class TestPathMode extends AutoModeBase {
         //System.out.println("Rotating to " + FACE_LEFT + "deg (face left)");
         //runAction(new DrivePathAction(rotate2));
         //runAction(new WaitAction(1));
-        //runAction(new DrivePathAction(path1a));
-        //runAction(new DrivePathAction(path1b));
+        runAction(new DrivePathAction(path1a));
+        runAction(new DrivePathAction(path1b));
         //runAction(new DrivePathAction(path1c));
         //runAction(new DrivePathAction(path1));
         runAction(new WaitAction(1));

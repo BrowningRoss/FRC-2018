@@ -28,7 +28,7 @@ public class Launcher extends Subsystem {
 
     private final DoubleSolenoid mLauncherSolenoid = Constants.makeDoubleSolenoidForId(Constants.kLauncherSolenoidId);
     private final Drive mDrive = Drive.getInstance();
-    private final LED mLED = LED.getInstance();
+    //private final LED mLED = LED.getInstance();
 
     public final WPI_TalonSRX mMasterTalon, mSlaveTalon;
     public final Spark mLeftLauncherSpark, mRightLauncherSpark;
@@ -109,7 +109,7 @@ public class Launcher extends Subsystem {
     public SystemState handleIntake(double timeInState) {
         mRightLauncherSpark.set(-.66);
         mLeftLauncherSpark.set(.66);
-        switch (mWantedState) {
+        /*switch (mWantedState) {
             case INTAKE_CUBE:
                 if (timeInState > 1)
                     return SystemState.IDLE;
@@ -117,7 +117,10 @@ public class Launcher extends Subsystem {
                     return SystemState.INTAKE_CUBE;
             default:
                 return SystemState.IDLE;
-        }
+        }*/
+        Timer.delay(1);
+        setWantedState(WantedState.IDLE);
+        return SystemState.IDLE;
     }
 
     private SystemState handleIdle(double timeInState) {
@@ -151,7 +154,7 @@ public class Launcher extends Subsystem {
         mDrive.setPeakVoltageMode(Drive.PeakVoltageMode.LOW);
 
         if (mMasterTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
-            mLED.setWantedState(LED.WantedState.SIGNAL);
+            //mLED.setWantedState(LED.WantedState.SIGNAL);
             if (mThresholdStart == Double.POSITIVE_INFINITY) {
                 mThresholdStart = timeInState;
             } else {
@@ -168,12 +171,12 @@ public class Launcher extends Subsystem {
             case ALIGN:
                 return SystemState.ALIGNING;
             case IDLE:
-                if (mLED.isSignaling()) {
+                /*if (mLED.isSignaling()) {
                     if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Red)
                         mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
                     else
                         mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
-                }
+                }*/
                 return SystemState.IDLE;
             case LAUNCH:
                 mThresholdStart = Double.POSITIVE_INFINITY;
@@ -191,7 +194,7 @@ public class Launcher extends Subsystem {
         mDrive.setPeakVoltageMode(Drive.PeakVoltageMode.LOW);
 
         if (mMasterTalon.getClosedLoopError(0) < kAllowableClosedLoopError) {
-            mLED.setWantedState(LED.WantedState.SIGNAL);
+            //mLED.setWantedState(LED.WantedState.SIGNAL);
             if (mThresholdStart == Double.POSITIVE_INFINITY) {
                 mThresholdStart = timeInState;
             } else {
@@ -206,12 +209,12 @@ public class Launcher extends Subsystem {
         }
         switch (mWantedState) {
             case ALIGN:
-                if (mLED.isSignaling()) {
+                /*if (mLED.isSignaling()) {
                     if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Red)
                         mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
                     else
                         mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
-                }
+                }*/
                 return SystemState.ALIGNING;
             case ALIGN_SWITCH:
                 return SystemState.ALIGNING_SWITCH;
@@ -219,12 +222,12 @@ public class Launcher extends Subsystem {
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 return SystemState.LAUNCHING_SWITCH;
             case IDLE:
-                if (mLED.isSignaling()) {
+                /*if (mLED.isSignaling()) {
                     if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Red)
                         mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
                     else
                         mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
-                }
+                }*/
                 return SystemState.IDLE;
             case LAUNCH:
                 mThresholdStart = Double.POSITIVE_INFINITY;
@@ -279,12 +282,12 @@ public class Launcher extends Subsystem {
             if (timeInState - mThresholdStart > kPostLaunchDelay) {
                 mThresholdStart = Double.POSITIVE_INFINITY;
                 mWantedState = WantedState.IDLE;
-                if (mLED.isSignaling()) {
+                /*if (mLED.isSignaling()) {
                     if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Red)
                         mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
                     else
                         mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
-                }
+                }*/
                 return SystemState.IDLE;
             }
         }

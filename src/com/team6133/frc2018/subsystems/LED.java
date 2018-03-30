@@ -59,7 +59,7 @@ public class LED extends Subsystem {
         public void onStop(double timestamp) {}
     };
     private LED() {
-        mBLUE = new DigitalOutput(Constants.kAllianceBlueLEDId);
+        /*mBLUE = new DigitalOutput(Constants.kAllianceBlueLEDId);
         mBLUE.set(true);
 
         mRED = new DigitalOutput(Constants.kAllianceRedLEDId);
@@ -68,7 +68,7 @@ public class LED extends Subsystem {
         mReset = new DigitalOutput(Constants.kResetArduinoId);
         mReset.set(false);
         mHasReset = false;
-        reset();
+        reset();*/
     }
 
     private void reset() {

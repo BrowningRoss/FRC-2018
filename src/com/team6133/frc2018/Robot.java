@@ -43,7 +43,7 @@ public class Robot extends IterativeRobot {
     private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(Drive.getInstance(),
             Intake.getInstance(),
             Launcher.getInstance(), //Climber.getInstance(),
-            ConnectionMonitor.getInstance() , LED.getInstance()
+            ConnectionMonitor.getInstance() //, LED.getInstance()
     ));
     // Get subsystem instances
     private Drive mDrive = Drive.getInstance();
@@ -51,7 +51,7 @@ public class Robot extends IterativeRobot {
     private Launcher mLauncher = Launcher.getInstance();
     //private Climber mClimber = Climber.getInstance();
 
-    private LED mLED = LED.getInstance();
+    //private LED mLED = LED.getInstance();
     private AutoModeExecuter mAutoModeExecuter = null;
     // Initialize other helper objects
     private DriveHelper mDriveHelper = new DriveHelper();
@@ -127,7 +127,7 @@ public class Robot extends IterativeRobot {
         zeroAllSensors();
         mCubeState = RobotCubeState.HOLDING;
         mMatchState = MatchState.PRE_MATCH;
-        mLED.setWantedState(LED.WantedState.PRE_MATCH);
+        //mLED.setWantedState(LED.WantedState.PRE_MATCH);
         //mDrive.getNavXBoard().setAngleAdjustment(Rotation2d.fromDegrees(-90));
     }
 
@@ -151,10 +151,10 @@ public class Robot extends IterativeRobot {
 
             if (Constants.kAllianceColor == DriverStation.Alliance.Blue) {
                 System.out.println("Blue Alliance Detected");
-                mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
+                //mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
             } else if (Constants.kAllianceColor == DriverStation.Alliance.Red) {
                 System.out.println("Red Alliance Detected");
-                mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
+                //mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
             }
 
             zeroAllSensors();
@@ -425,11 +425,11 @@ public class Robot extends IterativeRobot {
             // If we are connected to the FMS, then let's check every 5ms for the message.
             if ( DriverStation.getInstance().isFMSAttached() ) {
                 Constants.kAllianceColor = DriverStation.getInstance().getAlliance();
-                if (Constants.kAllianceColor == DriverStation.Alliance.Blue) {
+                /*if (Constants.kAllianceColor == DriverStation.Alliance.Blue) {
                     mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
                 } else if (Constants.kAllianceColor == DriverStation.Alliance.Red) {
                     mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
-                }
+                }*/
             } else {    // We are not connected to the FMS, so randomly generate the message.
                 if ( Constants.kGameSpecificMessage.length() != 4) {
                     Constants.kGameSpecificMessage = Constants.kMyGameMessages[ThreadLocalRandom.current().nextInt(0,8)];
@@ -444,7 +444,7 @@ public class Robot extends IterativeRobot {
 
         } else if (mMatchState == MatchState.END) {
             //PiConnection.closeConnection();
-            mLED.setWantedState(LED.WantedState.PRE_MATCH);
+            //mLED.setWantedState(LED.WantedState.PRE_MATCH);
         }
 
         allPeriodic();
@@ -467,20 +467,26 @@ public class Robot extends IterativeRobot {
         } else {
             System.out.println("ALL SYSTEMS PASSED");
         }
-        mDrive.setVoltageRightIRPD(216);
-        mDrive.setVoltageLeftIRPD(40);
-        mDrive.setVoltageRearIRPD(100);
+        //mDrive.setVoltageRightIRPD(216);
+        //mDrive.setVoltageLeftIRPD(216);
+        //mDrive.setVoltageRearIRPD(100);
+        mDrive.mLeftSensor.setLimitsVoltage(1.32, 1.32*1.05);
+        mDrive.mLeftSensor.setLimitsVoltage(1.6, 1.6*1.05);
+        mDrive.mLeftSensor.setLimitsVoltage(1.55*.95, 1.55);
     }
     private int loops = 0;
     @Override
     public void testPeriodic() {
         allPeriodic();
         mDrive.mFrontSensor.update();
-        if (++loops >= 100) {
-            System.out.println("Limit switch Value:\t" + mIntake.checkSystem());
-            System.out.println("Ultrasonic Value:\t" + mDrive.mFrontSensor.getAverageDistance());
-            System.out.println("Left IRPD Sees Wall: "+mDrive.mLeftSensor.seesWall() + "\t||\tRight IRPD Sees Wall: " + mDrive.mRightSensor.seesWall() + "\t||\tRear IRPD Sees Wall: " + mDrive.mRearSensor.seesWall());
+        if (++loops >= 50) {
+            //System.out.println("Limit switch Value:\t" + mIntake.checkSystem());
+            //System.out.println("Ultrasonic Value:\t" + mDrive.mFrontSensor.getAverageDistance());
+            //System.out.println("Left IRPD Sees Wall: "+mDrive.mLeftSensor.seesWall() + "\t||\tRight IRPD Sees Wall: " + mDrive.mRightSensor.seesWall() + "\t||\tRear IRPD Sees Wall: " + mDrive.mRearSensor.seesWall());
             loops = 0;
+            System.out.println("\nLEFT:\t" + mDrive.mLeftSensor.getVoltage() + "\t" + mDrive.mLeftSensor.seesWall());
+            System.out.println("RIGHT:\t" + mDrive.mRightSensor.getVoltage() + "\t" + mDrive.mRightSensor.seesWall());
+            System.out.println("REAR:\t" + mDrive.mRearSensor.getVoltage() + "\t" + mDrive.mRearSensor.seesWall());
         }
     }
 

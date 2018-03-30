@@ -20,17 +20,17 @@ import static com.team6133.frc2018.subsystems.Intake.PistonState.OPEN;
 
 public class Intake extends Subsystem {
 
-    private static final double kIntakeFloorCubeSetpoint = 675;
+    private static final double kIntakeFloorCubeSetpoint = 725;
     private static final double kIntakeStackCubeSetpoint = 350;
     private static final double kExhaustSwitchSetpoint   = 350;
-    private static final double kExhaustExchangeSetpoint = 500;
+    private static final double kExhaustExchangeSetpoint = 725;
     private static final double kHoldingSetpoint         = 0.000000;
     private static final double kLoadShooterSetpoint     = 0;
 
     private static final double kIntakeMotorSetpoint     = .95;
-    private static final double kExhaustMotorSetpoint    = .85;
-    private static final double kStowingMotorSetpoint    = -.5;
-    private static final double kLauncherExhaustSetpoint = .5;
+    private static final double kExhaustMotorSetpoint    = -.95;
+    private static final double kStowingMotorSetpoint    = .5;
+    private static final double kLauncherExhaustSetpoint = -.95;
     private static final double kTransitionDelay = 1.0;
     private static final double kExhaustDelay = 1;
     private static final double kLoadShooterDelay = .1;
@@ -79,9 +79,9 @@ public class Intake extends Subsystem {
     }
 
     private final WPI_TalonSRX mArmTalon;
-    private final Spark mLeftSpark, mRightSpark;
+    public final Spark mLeftSpark, mRightSpark;
     private final DigitalInput mLimitSwitch;
-    private final LED mLED = LED.getInstance();
+    //private final LED mLED = LED.getInstance();
 
     private WantedState mWantedState;
     private SystemState mSystemState;
@@ -90,7 +90,7 @@ public class Intake extends Subsystem {
     private double mThresholdEnd = Double.POSITIVE_INFINITY;
     private boolean mHasCube = false;
     private boolean mWantsExhaust = false;
-    private PowerDistributionPanel mPDP;
+    //private PowerDistributionPanel mPDP;
 
     private Intake() {
         mArmTalon   = CANTalonFactory.createDefaultTalon(Constants.kIntakeArmId         );
@@ -120,10 +120,10 @@ public class Intake extends Subsystem {
 
         mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
 
-        mPDP = new PowerDistributionPanel();
+        //mPDP = new PowerDistributionPanel();
     }
 
-    public PowerDistributionPanel getPDP() {return mPDP;}
+    //public PowerDistributionPanel getPDP() {return mPDP;}
 
     public boolean hasCube() {return mHasCube;}
 
@@ -173,14 +173,14 @@ public class Intake extends Subsystem {
 
                 mLeftSpark.set(kIntakeMotorSetpoint);
                 mRightSpark.set(-kIntakeMotorSetpoint);
-
+/*
                 if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold) {
                     if (mThresholdStart == Double.POSITIVE_INFINITY) {
                         mThresholdStart = timeInState;
                     } else if (timeInState - mThresholdStart > kThresholdTime) {
-                        mLED.setWantedState(LED.WantedState.SIGNAL);
+                        //mLED.setWantedState(LED.WantedState.SIGNAL);
                     }
-                }
+                }*/
                 /*
                 if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold && !mHasCube) {
                     mHasCube = true;
@@ -217,7 +217,7 @@ public class Intake extends Subsystem {
                 //mRightSolenoid.set(DoubleSolenoid.Value.kReverse);
                 mLeftSpark.set(kIntakeMotorSetpoint);
                 mRightSpark.set(-kIntakeMotorSetpoint);
-
+/*
                 if (mPDP.getCurrent(kPDPSparkSlot) > kIntakeThreshold) {
                     mHasCube = true;
                 } else {
@@ -235,7 +235,7 @@ public class Intake extends Subsystem {
                             mThresholdStart = timeInState;
                         }
                     }
-                }
+                }*/
                 return SystemState.INTAKE_STACK;
         }
     }
@@ -453,12 +453,12 @@ public class Intake extends Subsystem {
             mArmTalon.set(ControlMode.Position, kHoldingSetpoint);
         }*/
         //mLeftSolenoid.set( DoubleSolenoid.Value.kForward);
-        if (mLED.isSignaling()) {
+        /*if (mLED.isSignaling()) {
             if (DriverStation.getInstance().getAlliance() == DriverStation.Alliance.Red)
                 mLED.setWantedState(LED.WantedState.ALLIANCE_RED);
             else
                 mLED.setWantedState(LED.WantedState.ALLIANCE_BLUE);
-        }
+        }*/
         if (mLimitSwitch.get()) {
             mArmTalon.set(ControlMode.PercentOutput, -1);
             mThresholdStart = Double.POSITIVE_INFINITY;

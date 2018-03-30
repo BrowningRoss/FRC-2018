@@ -116,7 +116,7 @@ public class Constants extends ConstantsBase {
     public static final double kIntakeKd     = 0.05;
     public static final double kIntakeKf     = 0.06;
 
-    public static final double kLaunchProxSetpoint = 22;
+    public static final double kLaunchProxSetpoint = 24;
 
     public static final double kTwistMaxOutput = 0.66;
 

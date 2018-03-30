@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartRight_EndScoreSwitch extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,150, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 150, true), 0.25, .5);
+    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,150, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.32, true), 0.25, .66);
     AutonPathSettings path2 = new AutonPathSettings(FACE_RIGHT, -12, 0, new SensorTarget(SensorTarget.Sensor.Ultra, Constants.SWITCH_SIDE_DISTANCE_INCHES, false), .5, .5);
     @Override
     protected void routine() throws AutoModeEndedException {
