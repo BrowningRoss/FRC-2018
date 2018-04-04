@@ -373,6 +373,9 @@ public class Drive extends Subsystem {
             } else {
                 mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
             }
+        } else if (mPathSetting.getSensorTarget().sensor == SensorTarget.Sensor.Time) {
+            sensor = true;
+            mMecanumDrive.driveCartesian(magX, magY, -mPIDTwist.get(), getGyroAngle().getDegrees());
         } else {
             sensor = mPIDTwist.onTarget(1.5);
             mMecanumDrive.driveCartesian(0,0, -mPIDTwist.get(), getGyroAngle().getDegrees());

@@ -98,6 +98,7 @@ public class Robot extends IterativeRobot {
     private boolean _wantsLaunch         = false;
     private boolean _exhaustExchange     = false;
     private boolean _exhaustSwitch       = false;
+    private boolean _2exhaustExchange    = false;
     private boolean _loadLauncher        = false;
     private boolean _wantsCube           = false;
     private boolean _climb               = false;
@@ -198,6 +199,7 @@ public class Robot extends IterativeRobot {
             mDriveState = RobotDriveState.OPEN_LOOP;
             // Start loopers
             mEnabledLooper.start();
+            mDrive.getNavXBoard().setAngleAdjustment(mDrive.getGyroAngle());
             mDrive.setOpenLoop();
 
             zeroAllSensors();

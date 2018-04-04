@@ -16,8 +16,10 @@ public class AutoModeSelector {
 
     public static final String AUTO_OPTIONS_DASHBOARD_KEY = "auto_options";
     public static final String SELECTED_AUTO_MODE_DASHBOARD_KEY = "selected_auto_mode";
-    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Start Left | L Scale > L Switch > R Switch", () -> new LEFT_PreferScale_EitherSwitch());
+    private static final AutoModeCreator mDefaultMode = new AutoModeCreator("Start Center | Score Switch NEAR Side", () -> new CENTER_ScoreSwitchNear());
     private static final AutoModeCreator[] mAllModes = {
+            new AutoModeCreator("Start Right | R Switch > R Scale > Cross", () -> new RIGHT_PreferSwitch()),
+            new AutoModeCreator("Start Right | R Switch > No Score", () -> new RIGHT_PreferSwitch_or_NoScore()),
             new AutoModeCreator("Start Left | L Scale > L Switch > R Switch", () -> new LEFT_PreferScale_EitherSwitch()),
             new AutoModeCreator("Start Left | L Scale > L Switch > R Scale", () -> new LEFT_LScale_LSwitch_RScale()),
             new AutoModeCreator("Start Left | L Scale > R Scale", () -> new LEFT_LScale_RScale()),

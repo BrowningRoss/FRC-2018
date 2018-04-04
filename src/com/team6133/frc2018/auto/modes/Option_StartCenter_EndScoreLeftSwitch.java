@@ -11,10 +11,11 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartCenter_EndScoreLeftSwitch extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, -55, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.61, true), .25, .5);
-    AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, -55, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.61, true), .35, .5);
-    AutonPathSettings path3 = new AutonPathSettings(FACE_LEFT, 0, 45, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 2.25, true), .4, .5);
-    AutonPathSettings path4 = new AutonPathSettings(0, 0, 55, new SensorTarget(SensorTarget.Sensor.Ultra, 96, true), .15, .4);
+    AutonPathSettings path0 = new AutonPathSettings(FACE_LEFT, -55, 0, new SensorTarget(SensorTarget.Sensor.Time, 1,true), 1.73, .5);
+    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, -55, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.61, true), .75, .5);
+    AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, -55, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.61, true), .75, .5);
+    AutonPathSettings path3 = new AutonPathSettings(FACE_LEFT, 0, 45, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 2.25, true), .7, .5);
+    AutonPathSettings path4 = new AutonPathSettings(0, 0, 55, new SensorTarget(SensorTarget.Sensor.Time, 2.25, false), 3, .25);
 
     @Override
     protected void routine() throws AutoModeEndedException {

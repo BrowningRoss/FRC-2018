@@ -12,8 +12,8 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartRight_EndScoreSwitch extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,150, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.32, true), 0.25, .66);
-    AutonPathSettings path2 = new AutonPathSettings(FACE_RIGHT, -12, 0, new SensorTarget(SensorTarget.Sensor.Ultra, Constants.SWITCH_SIDE_DISTANCE_INCHES, false), .5, .5);
+    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,150, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.32, true), 3.17, .66);
+    AutonPathSettings path2 = new AutonPathSettings(FACE_RIGHT, -12, 0, new SensorTarget(SensorTarget.Sensor.Time, Constants.SWITCH_SIDE_DISTANCE_INCHES, false), 4.5, .25);
     @Override
     protected void routine() throws AutoModeEndedException {
         System.out.println("Option_StartRight_EndScoreSwitch()");

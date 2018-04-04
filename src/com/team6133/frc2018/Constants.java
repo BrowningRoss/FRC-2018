@@ -111,10 +111,10 @@ public class Constants extends ConstantsBase {
     public static final double kLauncherKd   = 0.02;
     public static final double kLauncherKf   = 0.03;
     // PID gains for the Intake Arm Setpoint loop
-    public static final double kIntakeKp     = 1.5;
+    public static final double kIntakeKp     = 1.6;
     public static final double kIntakeKi     = 0.2;
     public static final double kIntakeKd     = 0.05;
-    public static final double kIntakeKf     = 0.06;
+    public static final double kIntakeKf     = 0.07;
 
     public static final double kLaunchProxSetpoint = 24;
 

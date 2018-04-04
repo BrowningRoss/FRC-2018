@@ -29,8 +29,8 @@ public class Intake extends Subsystem {
 
     private static final double kIntakeMotorSetpoint     = .95;
     private static final double kExhaustMotorSetpoint    = -.95;
-    private static final double kStowingMotorSetpoint    = .5;
-    private static final double kLauncherExhaustSetpoint = -.95;
+    private static final double kStowingMotorSetpoint    = 0;
+    private static final double kLauncherExhaustSetpoint = -.90;
     private static final double kTransitionDelay = 1.0;
     private static final double kExhaustDelay = 1;
     private static final double kLoadShooterDelay = .1;

@@ -12,9 +12,9 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartLeft_EndScoreLeftSwitch extends AutoModeBase {
-    AutonPathSettings path1a = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.32, false), 0.25, .66);
-    AutonPathSettings path1b = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.32, true), 0.5, .85);
-    AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, 12,0, new SensorTarget(SensorTarget.Sensor.Ultra, Constants.SWITCH_SIDE_DISTANCE_INCHES, false) , .8, .5);
+    AutonPathSettings path1a = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.32, true), 3.25, .66);
+    //AutonPathSettings path1b = new AutonPathSettings(FACE_LEFT, 0,160, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.32, true), 0.5, .85);
+    AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, 12,0, new SensorTarget(SensorTarget.Sensor.Time, Constants.SWITCH_SIDE_DISTANCE_INCHES, false) , 3, .25);
 
     @Override
     protected void routine() throws AutoModeEndedException {
@@ -22,7 +22,7 @@ public class Option_StartLeft_EndScoreLeftSwitch extends AutoModeBase {
         double start = Timer.getFPGATimestamp();
         runAction(new ResetStartingPoseAction(Rotation2d.fromDegrees(FACE_LEFT)));
         runAction(new DrivePathAction(path1a));
-        runAction(new DrivePathAction(path1b));
+        //runAction(new DrivePathAction(path1b));
         System.out.println("Path 1/2 Time:\t" + (Timer.getFPGATimestamp() - start));
 
         runAction(new DrivePathAction(path2));

@@ -11,27 +11,27 @@ import edu.wpi.first.wpilibj.Timer;
 import java.util.Arrays;
 
 public class Option_StartCenter_EndScoreSwitchRight extends AutoModeBase {
-    AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.60, true), .25, .5);
-    AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.60, true), .05, .4);
-    AutonPathSettings path3 = new AutonPathSettings(FACE_LEFT, 0, 55, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 2.25, true), .4, .5);
-    AutonPathSettings path4 = new AutonPathSettings(0, 0, 55, new SensorTarget(SensorTarget.Sensor.Ultra, 96, true), .15, .4);
+    //AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.60, true), .25, .5);
+    //AutonPathSettings path2 = new AutonPathSettings(FACE_LEFT, 45, 0, new SensorTarget(SensorTarget.Sensor.RightIRPD, 1.60, true), .25, .4);
+    AutonPathSettings path3 = new AutonPathSettings(FACE_LEFT, 0, 55, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 2.25, true), .7, .5);
+    AutonPathSettings path4 = new AutonPathSettings(0, 0, 55, new SensorTarget(SensorTarget.Sensor.Time, 2.25, true), 3, .25);
 
     @Override
     protected void routine() throws AutoModeEndedException {
         System.out.println("Option_StartCenter_EndScoreSwitchRight()");
         double start = Timer.getFPGATimestamp();
         runAction(new ResetStartingPoseAction(Rotation2d.fromDegrees(FACE_LEFT)));
-        runAction(new DrivePathAction(path1));
-        System.out.println("Path 1/4 Time:\t" + (Timer.getFPGATimestamp() - start));
+        //runAction(new DrivePathAction(path1));
+        //System.out.println("Path 1/4 Time:\t" + (Timer.getFPGATimestamp() - start));
 
-        runAction(new DrivePathAction(path2));
-        System.out.println("Path 2/4 Time:\t" + (Timer.getFPGATimestamp() - start));
+        //runAction(new DrivePathAction(path2));
+        //System.out.println("Path 2/4 Time:\t" + (Timer.getFPGATimestamp() - start));
 
         runAction(new DrivePathAction(path3));
-        System.out.println("Path 3/4 Time:\t" + (Timer.getFPGATimestamp() - start));
+        System.out.println("Path 1/2 Time:\t" + (Timer.getFPGATimestamp() - start));
 
         runAction(new DrivePathAction(path4));
-        System.out.println("Path 4/4 Time:\t" + (Timer.getFPGATimestamp() - start));
+        System.out.println("Path 2/2 Time:\t" + (Timer.getFPGATimestamp() - start));
 
         runAction(new PrepLaunchSwitchAction());
         runAction(new WaitAction(.1));

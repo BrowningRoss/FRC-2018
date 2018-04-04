@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 public class Option_StartRight_EndScoreScale extends AutoModeBase {
     AutonPathSettings path1 = new AutonPathSettings(FACE_LEFT, 0,216, new SensorTarget(SensorTarget.Sensor.LeftIRPD, 1.2, true), .5, .66);
-    AutonPathSettings path2 = new AutonPathSettings(FACE_RIGHT, 0, 200, new SensorTarget(SensorTarget.Sensor.RearIRPD, 1.55, false), .5, .66);
+    AutonPathSettings path2 = new AutonPathSettings(FACE_RIGHT, 0, 200, new SensorTarget(SensorTarget.Sensor.RearIRPD, 1.55, false), 1.5, .66);
     AutonPathSettings path3 = new AutonPathSettings(FACE_RIGHT, 12, 0, SensorTarget.ultraScaleLaunchSetpoint, .05, .5);
 
     @Override
